@@ -38,7 +38,6 @@ function App() {
     console.log('App.tsx: fetchProjectsAndTags called');
     const storedProjects = await window.electronAPI.getProjects();
     console.log('App.tsx: Stored projects from DB:', storedProjects);
-    const tags = await window.electronAPI.getTags();
 
     const projectsWithTags = await Promise.all(
       storedProjects.map(async (project: any) => {
@@ -47,8 +46,20 @@ function App() {
       })
     );
     console.log('App.tsx: Projects with tags:', projectsWithTags);
+    
+    // Extract only tags that are actually used by projects
+    const usedTags = new Map();
+    projectsWithTags.forEach(project => {
+      project.tags?.forEach((tag: any) => {
+        if (!usedTags.has(tag.id)) {
+          usedTags.set(tag.id, tag);
+        }
+      });
+    });
+    const tagsInUse = Array.from(usedTags.values());
+    
     setProjects(projectsWithTags);
-    setAllTags(tags);
+    setAllTags(tagsInUse);
 
     if (projectsWithTags.length > 0 && projectsWithTags[0].alsFilePath) {
       const data = await window.electronAPI.readAls(projectsWithTags[0].alsFilePath);
@@ -129,11 +140,24 @@ function App() {
       })
     );
 
+    // Check if any filters are active
+    const hasSearchTerm = searchTerm.trim() !== '';
+    const hasTagFilters = selectedTags.length > 0;
+    const hasStatusFilters = selectedStatuses.length > 0;
+    const hasAnyFilters = hasSearchTerm || hasTagFilters || hasStatusFilters;
+
+    // If no filters are active, show all projects
+    if (!hasAnyFilters) {
+      console.log('App.tsx: No filters active, showing all projects:', projectsWithTags);
+      setProjects(projectsWithTags);
+      return;
+    }
+
     // Apply client-side filtering
     let filtered = projectsWithTags;
 
     // Filter by search term (case-insensitive search in project name and tags)
-    if (searchTerm.trim()) {
+    if (hasSearchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter((project) => {
         // Check project name
@@ -149,7 +173,7 @@ function App() {
     }
 
     // Filter by selected tags
-    if (selectedTags.length > 0) {
+    if (hasTagFilters) {
       filtered = filtered.filter((project) =>
         selectedTags.every((selectedTag) =>
           project.tags?.some((tag: any) => tag.name === selectedTag)
@@ -158,7 +182,7 @@ function App() {
     }
 
     // Filter by selected statuses
-    if (selectedStatuses.length > 0) {
+    if (hasStatusFilters) {
       filtered = filtered.filter((project) =>
         selectedStatuses.includes(project.status || 'None')
       );

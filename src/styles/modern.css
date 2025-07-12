@@ -11,6 +11,7 @@
   /* Semantic Colors */
   --primary-color: var(--space-cadet);
   --primary-hover: #1e2436;
+  --primary-dark: #1e2436;
   --secondary-color: var(--slate-gray);
   --secondary-hover: #5a6080;
   --accent-color: var(--peach);
@@ -892,12 +893,13 @@ textarea::placeholder {
   cursor: pointer;
   transition: all var(--transition-base);
   user-select: none;
-  will-change: transform, box-shadow;
+  will-change: transform, box-shadow, background-color;
 }
 
 .tag-filter-item:hover {
   border-color: var(--primary-color);
   box-shadow: 0 2px 4px rgba(42, 50, 75, 0.1);
+  transform: translateY(-1px);
 }
 
 .tag-filter-item:disabled {
@@ -905,11 +907,13 @@ textarea::placeholder {
   cursor: not-allowed;
 }
 
+/* Hide the actual checkbox completely */
 .tag-filter-item input[type="checkbox"] {
   position: absolute;
   opacity: 0;
   width: 0;
   height: 0;
+  pointer-events: none;
 }
 
 .tag-filter-label {
@@ -917,47 +921,68 @@ textarea::placeholder {
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--text-primary);
-}
-
-.tag-filter-checkmark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--bg-primary);
   transition: all var(--transition-base);
 }
 
-.tag-filter-checkmark svg {
-  width: 14px;
-  height: 14px;
-  color: white;
-  opacity: 0;
-  transition: opacity var(--transition-base);
+/* Remove the old checkmark element entirely - we'll use background colors instead */
+.tag-filter-checkmark {
+  display: none;
 }
 
-.tag-filter-item
-  input[type="checkbox"]:checked
-  + .tag-filter-label
-  + .tag-filter-checkmark {
+/* Selected state - use background color and text changes */
+.tag-filter-item:has(input[type="checkbox"]:checked) {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
+  color: white;
 }
 
-.tag-filter-item
-  input[type="checkbox"]:checked
-  + .tag-filter-label
-  + .tag-filter-checkmark
-  svg {
-  opacity: 1;
-}
-
-.tag-filter-item input[type="checkbox"]:checked ~ .tag-filter-label {
-  color: var(--primary-color);
+.tag-filter-item:has(input[type="checkbox"]:checked) .tag-filter-label {
+  color: white;
   font-weight: 600;
+}
+
+.tag-filter-item:has(input[type="checkbox"]:checked):hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Fallback for browsers that don't support :has() - using JavaScript-added class */
+.tag-filter-item.selected {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+.tag-filter-item.selected .tag-filter-label {
+  color: white;
+  font-weight: 600;
+}
+
+.tag-filter-item.selected:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+/* Add a subtle animation when selecting */
+.tag-filter-item {
+  animation: none;
+}
+
+.tag-filter-item input[type="checkbox"]:checked ~ * {
+  animation: pulse-select 0.2s ease-out;
+}
+
+@keyframes pulse-select {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .no-tags-message {
