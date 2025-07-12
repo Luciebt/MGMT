@@ -12,6 +12,7 @@ declare global {
       getProjectTags: (projectId: number) => Promise<any[]>;
       filterProjects: (filters: { projectName?: string; tagNames?: string[] }) => Promise<any[]>;
       readAls: (filePath: string) => Promise<any | null>;
+      updateMetadata: () => Promise<{ success: boolean }>;
     };
   }
 }
@@ -101,8 +102,26 @@ function App() {
     );
   };
 
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
   const handleRefresh = () => {
     fetchProjectsAndTags();
+  };
+
+  const handleUpdateMetadata = async () => {
+    console.log('Updating metadata...');
+    const result = await window.electronAPI.updateMetadata();
+    if (result.success) {
+      console.log('Metadata update completed');
+      fetchProjectsAndTags(); // Refresh projects after update
+    }
   };
 
   const sortedProjects = [...projects].sort((a, b) => {
@@ -124,7 +143,8 @@ function App() {
     <div style={{ padding: '20px' }}>
       <h1>Ableton Live Project Manager</h1>
       <button onClick={handleRefresh}>Refresh</button>
-      <button onClick={handleOpenRootDirectory}>
+      <button onClick={handleUpdateMetadata} style={{ marginLeft: '10px' }}>Update BPM/Key Metadata</button>
+      <button onClick={handleOpenRootDirectory} style={{ marginLeft: '10px' }}>
         Select Root Directory of Ableton Projects
       </button>
 
@@ -181,6 +201,8 @@ function App() {
               <tr>
                 <th onClick={() => handleSort('projectName')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>Project Name {sortColumn === 'projectName' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
                 <th onClick={() => handleSort('creationDate')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>Creation Date {sortColumn === 'creationDate' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
+                <th onClick={() => handleSort('bpm')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>BPM {sortColumn === 'bpm' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
+                <th onClick={() => handleSort('key')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>Key {sortColumn === 'key' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
                 <th style={{ border: '1px solid #ccc', padding: '8px' }}>Tags</th>
                 <th style={{ border: '1px solid #ccc', padding: '8px' }}>Actions</th>
               </tr>
@@ -192,6 +214,8 @@ function App() {
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>
                     {project.creationDate ? new Date(project.creationDate).toLocaleDateString() : 'N/A'}
                   </td>
+                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{project.bpm}</td>
+                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{project.key}</td>
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>
                     {(project.tags && project.tags.length > 0) ? (
                       project.tags.map((tag: any) => tag.name).join(', ')

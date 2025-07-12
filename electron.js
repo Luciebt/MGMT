@@ -13,15 +13,37 @@ const __dirname = path.dirname(__filename);
 const dbPath = path.join(app.getPath('userData'), 'ableton_projects.db');
 const db = new Database(dbPath);
 
+// Create tables with IF NOT EXISTS and proper schema
 db.exec(`
   CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     projectName TEXT NOT NULL,
     projectPath TEXT NOT NULL UNIQUE,
     alsFilePath TEXT NOT NULL,
-    creationDate TEXT
+    creationDate TEXT,
+    bpm REAL,
+    key TEXT
   )
 `);
+
+// Add missing columns if they don't exist (for database migration)
+try {
+  db.exec(`ALTER TABLE projects ADD COLUMN bpm REAL`);
+} catch (e) {
+  // Column already exists, ignore error
+}
+
+try {
+  db.exec(`ALTER TABLE projects ADD COLUMN key TEXT`);
+} catch (e) {
+  // Column already exists, ignore error
+}
+
+try {
+  db.exec(`ALTER TABLE projects ADD COLUMN creationDate TEXT`);
+} catch (e) {
+  // Column already exists, ignore error
+}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS tags (
@@ -40,6 +62,93 @@ db.exec(`
   )
 `);
 
+// Helper function to safely extract BPM from parsed ALS data
+function extractBPM(parsedData) {
+  try {
+    console.log('extractBPM: Starting BPM extraction...');
+    // Try different possible paths for BPM
+    const liveSet = parsedData.Ableton?.LiveSet?.[0];
+    if (!liveSet) {
+      console.log('extractBPM: No LiveSet found');
+      return null;
+    }
+
+    console.log('extractBPM: LiveSet found, checking paths...');
+
+    // Path 1: MasterTrack > DeviceChain > Mixer > Tempo > Manual > $.Value
+    const masterTrack = liveSet.MasterTrack?.[0];
+    console.log('extractBPM: MasterTrack exists:', !!masterTrack);
+
+    if (masterTrack?.DeviceChain?.[0]?.Mixer?.[0]?.Tempo?.[0]?.Manual?.[0]?.$?.Value) {
+      const bpm = parseFloat(masterTrack.DeviceChain[0].Mixer[0].Tempo[0].Manual[0].$.Value);
+      console.log('extractBPM: Found BPM in MasterTrack path:', bpm);
+      return bpm;
+    }
+
+    // Path 2: Check if tempo is stored elsewhere
+    if (liveSet.Transport?.[0]?.Tempo?.[0]?.Manual?.[0]?.$?.Value) {
+      const bpm = parseFloat(liveSet.Transport[0].Tempo[0].Manual[0].$.Value);
+      console.log('extractBPM: Found BPM in Transport path:', bpm);
+      return bpm;
+    }
+
+    // Path 3: Check LiveSet level tempo
+    if (liveSet.Tempo?.[0]?.Manual?.[0]?.$?.Value) {
+      const bpm = parseFloat(liveSet.Tempo[0].Manual[0].$.Value);
+      console.log('extractBPM: Found BPM in LiveSet Tempo path:', bpm);
+      return bpm;
+    }
+
+    // Debug: Let's see what paths are actually available
+    console.log('extractBPM: Available top-level keys in LiveSet:', Object.keys(liveSet));
+
+    if (masterTrack) {
+      console.log('extractBPM: Available keys in MasterTrack:', Object.keys(masterTrack));
+      if (masterTrack.DeviceChain?.[0]) {
+        console.log('extractBPM: Available keys in DeviceChain:', Object.keys(masterTrack.DeviceChain[0]));
+        if (masterTrack.DeviceChain[0].Mixer?.[0]) {
+          console.log('extractBPM: Available keys in Mixer:', Object.keys(masterTrack.DeviceChain[0].Mixer[0]));
+        }
+      }
+    }
+
+    console.log('extractBPM: BPM not found in expected locations');
+    return null;
+  } catch (error) {
+    console.error('extractBPM: Error extracting BPM:', error);
+    return null;
+  }
+}
+
+// Helper function to safely extract Key from parsed ALS data
+function extractKey(parsedData) {
+  try {
+    const liveSet = parsedData.Ableton?.LiveSet?.[0];
+    if (!liveSet) return null;
+
+    // Try to find key in MasterTrack name
+    const masterTrack = liveSet.MasterTrack?.[0];
+    if (masterTrack?.Name?.[0]?.$?.Value) {
+      const nameValue = masterTrack.Name[0].$.Value;
+      const keyMatch = nameValue.match(/\b([A-G][b#]?m?)\b/);
+      if (keyMatch) return keyMatch[0];
+    }
+
+    // Try to find key in the LiveSet name or other locations
+    if (liveSet.Annotation?.[0]?.$?.Value) {
+      const annotation = liveSet.Annotation[0].$.Value;
+      const keyMatch = annotation.match(/\b([A-G][b#]?m?)\b/);
+      if (keyMatch) return keyMatch[0];
+    }
+
+    console.log('Key not found in expected locations');
+    return null;
+  } catch (error) {
+    console.error('Error extracting Key:', error);
+    return null;
+  }
+}
+
 async function discoverAbletonProjects(rootPath) {
   const projects = [];
   const dirents = await fs.promises.readdir(rootPath, { withFileTypes: true });
@@ -48,20 +157,46 @@ async function discoverAbletonProjects(rootPath) {
     if (dirent.isDirectory() && dirent.name.endsWith(' Project')) {
       const projectPath = path.join(rootPath, dirent.name);
       const projectName = dirent.name.replace(/ Project$/, '');
-      const alsFilePath = path.join(projectPath, `${projectName}.als`);
-
-      // Verify if the .als file exists
+      const alsFilePath = path.join(projectPath, `${projectName}.als`);      // Verify if the .als file exists
       try {
+        console.log(`Processing ${alsFilePath}...`);
         const stats = await fs.promises.stat(alsFilePath);
+        const fileBuffer = await fs.promises.readFile(alsFilePath);
+        const decompressedData = zlib.gunzipSync(fileBuffer).toString('utf-8');
+        const parsedData = await parseStringPromise(decompressedData);
+
+        const bpm = extractBPM(parsedData);
+        const key = extractKey(parsedData);
+
+        console.log(`Extracted BPM: ${bpm}, Key: ${key} for ${projectName}.als`);
+
         const project = {
           projectName,
           projectPath,
           alsFilePath,
           creationDate: stats.birthtime.toISOString(),
+          bpm,
+          key,
         };
+
         projects.push(project);
       } catch (error) {
-        console.warn(`Skipping ${dirent.name}: No corresponding .als file found or other access issue.`, error.message);
+        console.error(`Failed to read .als file ${alsFilePath}:`, error.message);
+        // Still add the project without BPM/Key if file reading fails
+        try {
+          const stats = await fs.promises.stat(alsFilePath);
+          const project = {
+            projectName,
+            projectPath,
+            alsFilePath,
+            creationDate: stats.birthtime.toISOString(),
+            bpm: null,
+            key: null,
+          };
+          projects.push(project);
+        } catch (statError) {
+          console.error(`Failed to stat .als file ${alsFilePath}:`, statError.message);
+        }
       }
     }
   }
@@ -83,18 +218,47 @@ function createWindow() {
   win.webContents.openDevTools();
 }
 
+// Function to update existing projects with BPM and Key data
+async function updateExistingProjectsWithMetadata() {
+  console.log('Updating existing projects with BPM and Key metadata...');
+  const projects = db.prepare('SELECT * FROM projects WHERE bpm IS NULL OR key IS NULL').all();
+
+  for (const project of projects) {
+    try {
+      console.log(`Updating metadata for ${project.projectName}...`);
+      const fileBuffer = await fs.promises.readFile(project.alsFilePath);
+      const decompressedData = zlib.gunzipSync(fileBuffer).toString('utf-8');
+      const parsedData = await parseStringPromise(decompressedData);
+
+      const bpm = extractBPM(parsedData);
+      const key = extractKey(parsedData);
+
+      console.log(`Updated ${project.projectName}: BPM=${bpm}, Key=${key}`);
+
+      db.prepare('UPDATE projects SET bpm = ?, key = ? WHERE id = ?').run(bpm, key, project.id);
+    } catch (error) {
+      console.error(`Failed to update metadata for ${project.projectName}:`, error.message);
+    }
+  }
+  console.log('Finished updating existing projects.');
+}
+
 app.whenReady().then(() => {
   createWindow();
 
   ipcMain.handle('dialog:openRootDirectory', async () => {
     const rootDirectory = '/Users/lbt/Documents/code_projects/live_sets_test';
     console.log('Attempting to discover projects in:', rootDirectory);
+
+    // First update existing projects with missing metadata
+    await updateExistingProjectsWithMetadata();
+
     const projects = await discoverAbletonProjects(rootDirectory);
     console.log('Discovered projects:', projects);
 
     // Save discovered projects to database
     const insert = db.prepare(
-      'INSERT OR IGNORE INTO projects (projectName, projectPath, alsFilePath, creationDate) VALUES (?, ?, ?, ?)'
+      'INSERT OR IGNORE INTO projects (projectName, projectPath, alsFilePath, creationDate, bpm, key) VALUES (?, ?, ?, ?, ?, ?)'
     );
     db.transaction(() => {
       for (const project of projects) {
@@ -102,7 +266,9 @@ app.whenReady().then(() => {
           project.projectName,
           project.projectPath,
           project.alsFilePath,
-          project.creationDate
+          project.creationDate,
+          project.bpm,
+          project.key
         );
       }
     })();
@@ -184,6 +350,11 @@ app.whenReady().then(() => {
     const filteredProjects = db.prepare(query).all(...params);
     console.log('Filtered projects:', filteredProjects);
     return filteredProjects;
+  });
+
+  ipcMain.handle('db:updateMetadata', async () => {
+    await updateExistingProjectsWithMetadata();
+    return { success: true };
   });
 
   ipcMain.handle('file:readAls', async (event, filePath) => {
