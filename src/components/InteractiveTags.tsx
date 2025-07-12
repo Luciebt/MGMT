@@ -16,19 +16,18 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [editingTagIndex, setEditingTagIndex] = useState(-1);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Get filtered suggestions based on input
-  const suggestions = allTags.filter(tag => 
-    tag.toLowerCase().includes(inputValue.toLowerCase()) &&
-    !tags.includes(tag) &&
-    inputValue.length > 0
-  ).slice(0, 5);
+  // Filter and sort suggestions
+  const suggestions = allTags
+    .filter(tag => 
+      tag.toLowerCase().includes(inputValue.toLowerCase()) && !tags.includes(tag)
+    )
+    .sort((a, b) => a.localeCompare(b)) // Sort alphabetically
+    .slice(0, 10); // Limit to 10 suggestions
 
   // Handle clicking outside to exit edit mode
   useEffect(() => {
@@ -44,7 +43,7 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
     }
   }, [isEditing]);
 
-  // Focus input when entering edit mode
+  // Focus input and show suggestions when entering edit mode
   useEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
@@ -63,8 +62,11 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
       onTagsChange([...tags, trimmedTag]);
     }
     setInputValue('');
-    setShowAutocomplete(false);
     setHighlightedIndex(-1);
+    // Keep editing to allow adding multiple tags
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const handleRemoveTag = (indexToRemove: number, event: React.MouseEvent) => {
@@ -79,8 +81,6 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
     }
     setIsEditing(false);
     setInputValue('');
-    setShowAutocomplete(false);
-    setEditingTagIndex(-1);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -96,28 +96,21 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
       
       case 'Escape':
         event.preventDefault();
-        setInputValue('');
         setIsEditing(false);
-        setShowAutocomplete(false);
+        setInputValue('');
         break;
       
       case 'ArrowDown':
         event.preventDefault();
         if (suggestions.length > 0) {
-          setHighlightedIndex(prev => 
-            prev < suggestions.length - 1 ? prev + 1 : 0
-          );
-          setShowAutocomplete(true);
+          setHighlightedIndex(prev => (prev + 1) % suggestions.length);
         }
         break;
       
       case 'ArrowUp':
         event.preventDefault();
         if (suggestions.length > 0) {
-          setHighlightedIndex(prev => 
-            prev > 0 ? prev - 1 : suggestions.length - 1
-          );
-          setShowAutocomplete(true);
+          setHighlightedIndex(prev => (prev - 1 + suggestions.length) % suggestions.length);
         }
         break;
       
@@ -133,20 +126,12 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setInputValue(value);
-    setShowAutocomplete(value.length > 0 && suggestions.length > 0);
+    setInputValue(event.target.value);
     setHighlightedIndex(-1);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
     handleAddTag(suggestion);
-  };
-
-  const handleTagClick = (index: number, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setEditingTagIndex(index);
-    setIsEditing(true);
   };
 
   return (
@@ -155,7 +140,7 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
       className={`tags-container ${isEditing ? 'editing' : ''}`}
       onClick={handleContainerClick}
       role="button"
-      tabIndex={0}
+      tabIndex={isEditing ? -1 : 0}
       aria-label="Click to edit tags"
     >
       {tags.length === 0 && !isEditing && (
@@ -165,11 +150,7 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
       )}
       
       {tags.map((tag, index) => (
-        <span
-          key={`${tag}-${index}`}
-          className={`tag-pill ${editingTagIndex === index ? 'editing' : ''}`}
-          onClick={(e) => handleTagClick(index, e)}
-        >
+        <span key={`${tag}-${index}`} className="tag-pill">
           {tag}
           <button
             className="tag-pill-remove"
@@ -183,51 +164,35 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
       ))}
       
       {isEditing && (
-        <input
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          onBlur={() => {
-            // Small delay to allow autocomplete clicks
-            setTimeout(() => {
-              if (!containerRef.current?.contains(document.activeElement)) {
-                handleFinishEditing();
-              }
-            }, 150);
-          }}
-          className="tag-input-inline"
-          placeholder="Add tag..."
-          maxLength={30}
-        />
-      )}
-      
-      {!isEditing && tags.length < maxTags && (
-        <button
-          className="tag-add-button"
-          onClick={handleContainerClick}
-          aria-label="Add new tag"
-          title="Add tag"
-        >
-          +
-        </button>
-      )}
-      
-      {showAutocomplete && suggestions.length > 0 && (
-        <div className="tag-autocomplete">
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={suggestion}
-              className={`tag-autocomplete-item ${
-                index === highlightedIndex ? 'highlighted' : ''
-              }`}
-              onClick={() => handleSuggestionClick(suggestion)}
-              onMouseEnter={() => setHighlightedIndex(index)}
-            >
-              {suggestion}
+        <div className="tag-input-wrapper flex-grow">
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onBlur={handleFinishEditing}
+            className="tag-input-inline"
+            placeholder="Add tag..."
+            maxLength={30}
+          />
+          {suggestions.length > 0 && (
+            <div className="tag-autocomplete">
+              {suggestions.map((suggestion, index) => (
+                <div
+                  key={suggestion}
+                  className={`tag-autocomplete-item ${
+                    index === highlightedIndex ? 'highlighted' : ''
+                  }`}
+                  onMouseDown={(e) => e.preventDefault()} // Prevent blur
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                >
+                  {suggestion}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>

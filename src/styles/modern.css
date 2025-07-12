@@ -453,7 +453,6 @@ textarea::placeholder {
 .tag-pill:hover {
   background-color: var(--accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(42, 50, 75, 0.1);
 }
 
 .tag-pill.editing {
@@ -510,19 +509,27 @@ textarea::placeholder {
 }
 
 /* Tag Input and Autocomplete */
+.tag-input-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.tag-input-wrapper.flex-grow {
+  flex-grow: 1;
+}
+
 .tag-input-inline {
+  width: 100%; /* Make input fill the wrapper */
   border: none;
   outline: none;
   background: transparent;
   color: var(--text-primary);
   font-size: var(--font-size-xs);
   font-family: var(--font-family);
-  padding: 0 var(--spacing-xs); /* Remove vertical padding */
-  margin: 0; /* Ensure no margins */
-  height: 20px; /* Match tag pill height */
-  line-height: 20px; /* Center text vertically */
-  min-width: 60px;
-  max-width: 120px;
+  padding: 0 var(--spacing-xs);
+  margin: 0;
+  height: 20px;
+  line-height: 20px;
 }
 
 .tag-input-inline::placeholder {
@@ -532,24 +539,24 @@ textarea::placeholder {
 
 .tag-autocomplete {
   position: absolute;
+  width: 100%; /* Match the width of the wrapper */
   top: 100%;
   left: 0;
-  right: 0;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow-lg);
   z-index: 1000;
-  max-height: 120px;
+  max-height: 150px; /* Increased max-height */
   overflow-y: auto;
-  margin-top: 2px;
+  margin-top: 4px; /* A little space from the input */
 }
 
 .tag-autocomplete-item {
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--spacing-sm);
   cursor: pointer;
-  font-size: var(--font-size-xs);
-  transition: background-color var(--transition-base);
+  font-size: var(--font-size-sm);
+  transition: background-color var(--transition-fast);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -559,7 +566,8 @@ textarea::placeholder {
 
 .tag-autocomplete-item:hover,
 .tag-autocomplete-item.highlighted {
-  background-color: var(--bg-secondary);
+  background-color: var(--primary-color);
+  color: white;
 }
 
 .tag-empty-state {
