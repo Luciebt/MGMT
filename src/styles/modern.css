@@ -103,7 +103,8 @@ body {
 .app-title {
   font-size: var(--font-size-xl);
   font-weight: 600;
-  color: var(--accent-color);
+  background-color: var(--accent-color);
+  color: var(--primary-color);
   margin: 0;
   text-shadow: 1px 1px 2px rgba(42, 50, 75, 0.1);
 }
@@ -113,8 +114,17 @@ body {
   gap: var(--spacing-sm);
 }
 
-/* Buttons */
+/* === Simplified Button System === */
 .btn {
+  /* Define variables for button colors */
+  --btn-bg: var(--primary-color);
+  --btn-color: white;
+  --btn-border-color: transparent;
+  --btn-hover-bg: var(--primary-hover);
+  --btn-hover-color: white;
+  --btn-hover-border-color: transparent;
+
+  /* Core button styles */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -123,117 +133,76 @@ body {
   font-size: var(--font-size-base);
   font-weight: 500;
   text-decoration: none;
-  border: 1px solid transparent;
+  border: 1px solid var(--btn-border-color);
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition: all var(--transition-base);
-  min-width: auto;
+  transition: all var(--transition-fast);
+
+  /* Apply the colors */
+  background-color: var(--btn-bg);
+  color: var(--btn-color);
 }
 
-.btn:focus {
+/* Hover and Focus States */
+.btn:hover:not(:disabled) {
+  background-color: var(--btn-hover-bg);
+  color: var(--btn-hover-color);
+  border-color: var(--btn-hover-border-color);
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow);
+}
+
+.btn:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.btn-primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white;
+/* --- Button Variations --- */
+
+/* Secondary Button */
+.btn.btn-secondary {
+  --btn-bg: var(--secondary-color);
+  --btn-hover-bg: var(--secondary-hover);
 }
 
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--primary-hover);
-  border-color: var(--primary-hover);
+/* Outline Button */
+.btn.btn-outline {
+  --btn-bg: transparent;
+  --btn-color: var(--text-primary);
+  --btn-border-color: var(--border-color);
+  --btn-hover-bg: var(--bg-secondary);
+  --btn-hover-color: var(--text-primary);
+  --btn-hover-border-color: var(--border-color);
 }
 
-.btn-secondary {
-  background-color: var(--secondary-color);
-  border-color: var(--secondary-color);
-  color: white;
+/* Success/Accent Button */
+.btn.btn-success {
+  --btn-bg: var(--accent-color);
+  --btn-color: var(--space-cadet);
+  --btn-hover-bg: var(--accent-hover);
+  --btn-hover-color: var(--space-cadet);
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background-color: var(--secondary-hover);
-  border-color: var(--secondary-hover);
+/* Danger Button */
+.btn.btn-danger {
+  --btn-bg: var(--danger-color);
+  --btn-hover-bg: var(--danger-hover);
 }
 
-.btn-outline {
-  background-color: transparent;
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.btn-outline:hover:not(:disabled) {
-  background-color: var(--bg-secondary);
-}
-
-.btn-success {
-  background-color: var(--accent-color);
-  border-color: var(--accent-color);
-  color: var(--space-cadet);
-  font-weight: 600;
-}
-
-.btn-success:hover:not(:disabled) {
-  background-color: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
-
-.btn-sm {
+/* --- Button Sizes --- */
+.btn.btn-sm {
   padding: var(--spacing-xs) var(--spacing-sm);
   font-size: var(--font-size-sm);
 }
 
-/* Compact Add Tag Button */
-.tag-add-group .btn {
-  min-width: 32px;
-  padding: var(--spacing-xs);
-  font-weight: 600;
-  font-size: var(--font-size-base);
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  background-color: var(--accent-color);
-  border-color: var(--accent-color);
-  color: var(--space-cadet);
-  transition: all var(--transition-base);
-}
-
-.tag-add-group .btn:hover:not(:disabled) {
-  background-color: var(--accent-hover);
-  border-color: var(--accent-hover);
-  transform: scale(1.05);
-}
-
-.tag-add-group .btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed !important;
-  background-color: var(--border-color);
-  border-color: var(--border-color);
-  color: var(--text-muted);
-  transform: none;
-  pointer-events: none;
-}
-
-/* Loading state for add tag button */
-.tag-add-group .btn.loading {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-  100% {
-    opacity: 1;
-  }
+.btn.btn-lg {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-lg);
 }
 
 /* Forms and Inputs */
@@ -263,7 +232,8 @@ textarea {
   border-radius: var(--border-radius);
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: border-color var(--transition-base),
+  transition:
+    border-color var(--transition-base),
     box-shadow var(--transition-base);
 }
 
@@ -547,7 +517,10 @@ textarea::placeholder {
   color: var(--text-primary);
   font-size: var(--font-size-xs);
   font-family: var(--font-family);
-  padding: 2px 4px;
+  padding: 0 var(--spacing-xs); /* Remove vertical padding */
+  margin: 0; /* Ensure no margins */
+  height: 20px; /* Match tag pill height */
+  line-height: 20px; /* Center text vertically */
   min-width: 60px;
   max-width: 120px;
 }
@@ -635,7 +608,8 @@ textarea::placeholder {
   border-radius: var(--border-radius);
   font-size: var(--font-size-base);
   background-color: var(--bg-primary);
-  transition: border-color var(--transition-base),
+  transition:
+    border-color var(--transition-base),
     box-shadow var(--transition-base);
 }
 
