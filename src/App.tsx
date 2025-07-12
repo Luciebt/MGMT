@@ -200,7 +200,7 @@ function App() {
             <thead>
               <tr>
                 <th onClick={() => handleSort('projectName')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>Project Name {sortColumn === 'projectName' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
-                <th onClick={() => handleSort('creationDate')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>Creation Date {sortColumn === 'creationDate' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
+                <th onClick={() => handleSort('creationDate')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>ALS File Created {sortColumn === 'creationDate' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
                 <th onClick={() => handleSort('bpm')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>BPM {sortColumn === 'bpm' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
                 <th onClick={() => handleSort('key')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>Key {sortColumn === 'key' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
                 <th style={{ border: '1px solid #ccc', padding: '8px' }}>Tags</th>
@@ -212,7 +212,14 @@ function App() {
                 <tr key={index}>
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>{project.projectName}</td>
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                    {project.creationDate ? new Date(project.creationDate).toLocaleDateString() : 'N/A'}
+                    {project.creationDate ? (
+                      <div title={`Full timestamp: ${new Date(project.creationDate).toString()}`}>
+                        <div>{new Date(project.creationDate).toLocaleDateString()}</div>
+                        <div style={{ fontSize: '0.8em', color: '#666' }}>
+                          {new Date(project.creationDate).toLocaleTimeString()}
+                        </div>
+                      </div>
+                    ) : 'N/A'}
                   </td>
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>{project.bpm}</td>
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>{project.key}</td>

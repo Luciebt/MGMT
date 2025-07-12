@@ -214,8 +214,13 @@ function createWindow() {
     },
   });
 
-  win.loadURL('http://localhost:5173');
-  win.webContents.openDevTools();
+  // Load from built files or development server
+  if (process.env.NODE_ENV === 'development') {
+    win.loadURL('http://localhost:5173');
+    win.webContents.openDevTools();
+  } else {
+    win.loadFile(path.join(__dirname, 'dist', 'index.html'));
+  }
 }
 
 // Function to update existing projects with BPM and Key data
