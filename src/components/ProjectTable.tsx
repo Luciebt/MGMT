@@ -93,15 +93,20 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
                     type="text"
                     placeholder="Add tag"
                     className="tag-input"
+                    maxLength={50}
                     onKeyDown={async (e) => {
                       if (e.key === 'Enter') {
+                        e.preventDefault();
                         await handleAddTag(project.id, e.target as HTMLInputElement);
                       }
                     }}
                   />
                   <button
                     className="add-tag-btn"
+                    type="button"
+                    aria-label={`Add tag to ${project.projectName}`}
                     onClick={async (e) => {
+                      e.preventDefault();
                       const input = (e.target as HTMLButtonElement)
                         .previousSibling as HTMLInputElement;
                       await handleAddTag(project.id, input);

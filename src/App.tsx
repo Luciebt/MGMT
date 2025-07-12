@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import './styles/modern.css';
+import { ProjectTable } from './components/ProjectTable';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 declare global {
   interface Window {
@@ -115,15 +118,6 @@ function App() {
     fetchProjectsAndTags();
   };
 
-  const handleUpdateMetadata = async () => {
-    console.log('Updating metadata...');
-    const result = await window.electronAPI.updateMetadata();
-    if (result.success) {
-      console.log('Metadata update completed');
-      fetchProjectsAndTags(); // Refresh projects after update
-    }
-  };
-
   const sortedProjects = [...projects].sort((a, b) => {
     if (!sortColumn) return 0;
 
@@ -140,42 +134,49 @@ function App() {
   }, [searchTerm, selectedTags]); // Re-filter when search term or selected tags change
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Ableton Live Project Manager</h1>
-      <button onClick={handleRefresh}>Refresh</button>
-      <button onClick={handleUpdateMetadata} style={{ marginLeft: '10px' }}>Update BPM/Key Metadata</button>
-      <button onClick={handleOpenRootDirectory} style={{ marginLeft: '10px' }}>
-        Select Root Directory of Ableton Projects
-      </button>
+    <div className="app-container">
+      <div className="app-header">
+        <h1 className="app-title">Ableton Live Project Manager</h1>
+        <div className="header-actions">
+          <button className="btn btn-outline" onClick={handleRefresh}>Refresh</button>
+          <button className="btn btn-secondary" onClick={handleOpenRootDirectory}>
+            Select Root Directory
+          </button>
+        </div>
+      </div>
 
       {rootDirectory && (
-        <div style={{ marginTop: '20px' }}>
+        <div className="mb-4">
           <h2>Selected Root Directory:</h2>
-          <p>{rootDirectory}</p>
+          <p className="text-muted">{rootDirectory}</p>
         </div>
       )}
 
-      <div style={{ marginTop: '20px' }}>
+      <div className="mb-4">
         <h2>Manage Tags:</h2>
-        <input
-          type="text"
-          value={newTag}
-          onChange={(e) => setNewTag(e.target.value)}
-          placeholder="Add new tag"
-        />
-        <button onClick={handleAddTag}>Add Tag</button>
+        <div className="d-flex align-items-center gap-2 mb-3">
+          <input
+            type="text"
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            placeholder="Add new tag"
+            className="form-input"
+            style={{ maxWidth: '300px' }}
+          />
+          <button className="btn btn-success" onClick={handleAddTag}>Add Tag</button>
+        </div>
         {allTags.length > 0 && (
-          <div style={{ marginTop: '10px' }}>
+          <div className="mb-3">
             <h3>All Available Tags:</h3>
-            <div>
+            <div className="tag-checkboxes">
               {allTags.map((tag) => (
-                <label key={tag.id} style={{ marginRight: '10px' }}>
+                <label key={tag.id} className="tag-checkbox">
                   <input
                     type="checkbox"
                     checked={selectedTags.includes(tag.name)}
                     onChange={() => handleTagFilterChange(tag.name)}
                   />
-                  {tag.name}
+                  <span className="tag-name">{tag.name}</span>
                 </label>
               ))}
             </div>
@@ -183,82 +184,45 @@ function App() {
         )}
       </div>
 
-      <div style={{ marginTop: '20px' }}>
+      <div className="mb-4">
         <h2>Filter Projects:</h2>
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search by project name"
+          className="form-input search-input"
         />
       </div>
 
       {projects.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
-          <h3>Discovered Ableton Projects:</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th onClick={() => handleSort('projectName')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>Project Name {sortColumn === 'projectName' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
-                <th onClick={() => handleSort('creationDate')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>ALS File Created {sortColumn === 'creationDate' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
-                <th onClick={() => handleSort('bpm')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>BPM {sortColumn === 'bpm' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
-                <th onClick={() => handleSort('key')} style={{ border: '1px solid #ccc', padding: '8px', cursor: 'pointer' }}>Key {sortColumn === 'key' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
-                <th style={{ border: '1px solid #ccc', padding: '8px' }}>Tags</th>
-                <th style={{ border: '1px solid #ccc', padding: '8px' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedProjects.map((project, index) => (
-                <tr key={index}>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{project.projectName}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                    {project.creationDate ? (
-                      <div title={`Full timestamp: ${new Date(project.creationDate).toString()}`}>
-                        <div>{new Date(project.creationDate).toLocaleDateString()}</div>
-                        <div style={{ fontSize: '0.8em', color: '#666' }}>
-                          {new Date(project.creationDate).toLocaleTimeString()}
-                        </div>
-                      </div>
-                    ) : 'N/A'}
-                  </td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{project.bpm}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{project.key}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                    {(project.tags && project.tags.length > 0) ? (
-                      project.tags.map((tag: any) => tag.name).join(', ')
-                    ) : (
-                      '-'
-                    )}
-                  </td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>
-                    <input
-                      type="text"
-                      placeholder="Add tag"
-                      onKeyDown={async (e) => {
-                        if (e.key === 'Enter') {
-                          const inputElement = e.target as HTMLInputElement;
-                          await handleAddProjectTag(project.id, inputElement.value);
-                          inputElement.value = '';
-                        }
-                      }}
-                    />
-                    <button onClick={async (e) => {
-                      const inputElement = (e.target as HTMLButtonElement).previousSibling as HTMLInputElement;
-                      await handleAddProjectTag(project.id, inputElement.value);
-                      inputElement.value = '';
-                    }}>Add</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ErrorBoundary>
+          <div className="mb-4">
+            <h3>Discovered Ableton Projects:</h3>
+            <ProjectTable
+              projects={sortedProjects}
+              onSort={handleSort}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onAddProjectTag={handleAddProjectTag}
+            />
+          </div>
+        </ErrorBoundary>
       )}
 
       {parsedData && (
-        <div style={{ marginTop: '20px' }}>
+        <div className="mb-4">
           <h3>Parsed Data from first discovered ALS file:</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+          <pre style={{ 
+            whiteSpace: 'pre-wrap', 
+            wordBreak: 'break-all',
+            backgroundColor: 'var(--bg-secondary)',
+            padding: 'var(--spacing-md)',
+            borderRadius: 'var(--border-radius)',
+            fontSize: 'var(--font-size-sm)',
+            maxHeight: '400px',
+            overflow: 'auto'
+          }}>
             {JSON.stringify(parsedData, null, 2)}
           </pre>
         </div>

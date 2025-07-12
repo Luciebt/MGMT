@@ -1,26 +1,38 @@
 /* Modern Ableton Project Manager Styles */
 
 :root {
-  --primary-color: #007acc;
-  --primary-hover: #005999;
-  --secondary-color: #6c757d;
-  --success-color: #28a745;
-  --warning-color: #ffc107;
-  --danger-color: #dc3545;
-  --info-color: #17a2b8;
+  /* New Color Palette */
+  --peach: #f7c59f;
+  --space-cadet: #2a324b;
+  --slate-gray: #767b91;
+  --french-gray: #c7ccdb;
+  --alice-blue: #e1e5ee;
 
+  /* Semantic Color Assignments */
+  --primary-color: var(--space-cadet);
+  --primary-hover: #1e2436;
+  --secondary-color: var(--slate-gray);
+  --secondary-hover: #5a6080;
+  --accent-color: var(--peach);
+  --accent-hover: #f5b380;
+  --danger-color: #d63447;
+  --danger-hover: #b21e2c;
+
+  /* Background Colors */
   --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #e9ecef;
+  --bg-secondary: var(--alice-blue);
+  --bg-tertiary: var(--french-gray);
 
-  --text-primary: #212529;
-  --text-secondary: #6c757d;
-  --text-muted: #868e96;
+  /* Text Colors */
+  --text-primary: var(--space-cadet);
+  --text-secondary: var(--slate-gray);
+  --text-muted: var(--slate-gray);
 
-  --border-color: #dee2e6;
+  /* Border and Shadow */
+  --border-color: var(--french-gray);
   --border-radius: 0.375rem;
-  --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  --box-shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --box-shadow: 0 0.125rem 0.25rem rgba(42, 50, 75, 0.075);
+  --box-shadow-lg: 0 0.5rem 1rem rgba(42, 50, 75, 0.15);
 
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     sans-serif;
@@ -49,6 +61,16 @@ body {
   line-height: 1.5;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+}
+
+/* Main container wrapper */
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Layout */
@@ -56,6 +78,8 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   padding: var(--spacing-xl);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .app-header {
@@ -70,8 +94,9 @@ body {
 .app-title {
   font-size: var(--font-size-xl);
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--accent-color);
   margin: 0;
+  text-shadow: 1px 1px 2px rgba(42, 50, 75, 0.1);
 }
 
 .header-actions {
@@ -123,6 +148,11 @@ body {
   color: white;
 }
 
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--secondary-hover);
+  border-color: var(--secondary-hover);
+}
+
 .btn-outline {
   background-color: transparent;
   border-color: var(--border-color);
@@ -134,9 +164,15 @@ body {
 }
 
 .btn-success {
-  background-color: var(--success-color);
-  border-color: var(--success-color);
-  color: white;
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: var(--space-cadet);
+  font-weight: 600;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .btn-sm {
@@ -162,17 +198,58 @@ body {
   font-size: var(--font-size-base);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+  box-shadow: 0 0 0 2px rgba(42, 50, 75, 0.2);
+  background-color: var(--bg-primary);
 }
 
 .search-input {
   max-width: 300px;
+}
+
+/* Global Input Styling */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(42, 50, 75, 0.2);
+  background-color: var(--bg-primary);
+}
+
+input[type="text"]::placeholder,
+input[type="search"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+input[type="number"]::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
 }
 
 /* Project Filters */
@@ -244,12 +321,15 @@ body {
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
   overflow: hidden;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .project-table {
   width: 100%;
   border-collapse: collapse;
   margin: 0;
+  table-layout: fixed;
 }
 
 .project-table th,
@@ -326,6 +406,7 @@ body {
 .tag-input-group {
   display: flex;
   gap: var(--spacing-xs);
+  align-items: center;
 }
 
 .tag-input {
@@ -334,14 +415,24 @@ body {
   font-size: var(--font-size-sm);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.tag-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(42, 50, 75, 0.2);
+  background-color: var(--bg-primary);
 }
 
 .add-tag-btn {
   padding: var(--spacing-xs) var(--spacing-sm);
   font-size: var(--font-size-sm);
-  background-color: var(--primary-color);
-  color: white;
-  border: 1px solid var(--primary-color);
+  background-color: var(--space-cadet);
+  color: #ffffff;
+  border: 1px solid var(--space-cadet);
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
@@ -349,12 +440,13 @@ body {
 
 .add-tag-btn:hover {
   background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
 /* Error Boundary */
 .error-boundary {
-  background-color: #fdf2f2;
-  border: 1px solid #fca5a5;
+  background-color: var(--alice-blue);
+  border: 1px solid var(--french-gray);
   border-radius: var(--border-radius);
   padding: var(--spacing-lg);
   margin: var(--spacing-lg) 0;
@@ -382,7 +474,7 @@ body {
 }
 
 .retry-button:hover {
-  background-color: #c82333;
+  background-color: var(--danger-hover);
 }
 
 /* Loading States */
@@ -415,32 +507,194 @@ body {
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .app-container {
+    max-width: 100%;
+    padding: var(--spacing-lg);
+  }
+
+  .project-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .project-table {
+    min-width: 800px;
+    table-layout: auto;
+  }
+}
+
 @media (max-width: 768px) {
   .app-container {
     padding: var(--spacing-md);
+    max-width: 100%;
   }
 
   .app-header {
     flex-direction: column;
     gap: var(--spacing-md);
+    text-align: center;
   }
 
   .header-actions {
     width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
   }
 
   .project-table-container {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--border-radius);
+  }
+
+  .project-table {
+    min-width: 700px;
+    table-layout: auto;
+  }
+
+  .project-table th,
+  .project-table td {
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+
+  .project-table th:last-child {
+    position: sticky;
+    right: 0;
+    background-color: var(--bg-secondary);
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+    z-index: 11;
+  }
+
+  .project-name {
+    max-width: 120px;
+  }
+
+  .creation-date-cell {
+    min-width: 100px;
+    font-size: 0.75rem;
+  }
+
+  .actions-cell {
+    min-width: 180px;
+    position: sticky;
+    right: 0;
+    background-color: var(--bg-primary);
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+    z-index: 5;
+  }
+
+  .tag-input-group {
+    gap: var(--spacing-xs);
+  }
+
+  .tag-input {
+    min-width: 100px;
+    flex: 1;
+  }
+
+  .add-tag-btn {
+    flex-shrink: 0;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-weight: 600;
+  }
+
+  .tag-checkboxes {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .search-input {
+    max-width: 100%;
+  }
+
+  .form-input {
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .app-container {
+    padding: var(--spacing-sm);
   }
 
   .project-table {
     min-width: 600px;
   }
 
-  .tag-checkboxes {
-    max-height: 200px;
-    overflow-y: auto;
+  .project-table th,
+  .project-table td {
+    padding: var(--spacing-xs);
+    font-size: 0.75rem;
+  }
+
+  .project-table th:last-child {
+    position: sticky;
+    right: 0;
+    background-color: var(--bg-secondary);
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+    z-index: 11;
+  }
+
+  .project-name {
+    max-width: 80px;
+    font-size: 0.75rem;
+  }
+
+  .creation-date-cell {
+    min-width: 90px;
+    font-size: 0.7rem;
+  }
+
+  .bpm-cell,
+  .key-cell {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) 2px;
+  }
+
+  .tags-cell {
+    max-width: 80px;
+    font-size: 0.75rem;
+  }
+
+  .actions-cell {
+    min-width: 140px;
+    position: sticky;
+    right: 0;
+    background-color: var(--bg-primary);
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+    z-index: 5;
+  }
+
+  .tag-input-group {
+    flex-direction: column;
+    gap: 4px;
+    min-width: 130px;
+  }
+
+  .tag-input {
+    font-size: 0.75rem;
+    padding: 4px 6px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .add-tag-btn {
+    width: 100%;
+    font-size: 0.75rem;
+    padding: 6px 8px;
+    font-weight: 600;
+    background-color: var(--peach);
+    color: var(--space-cadet);
+    border: 1px solid var(--peach);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .add-tag-btn:hover {
+    background-color: var(--space-cadet);
+    color: var(--peach);
+    border-color: var(--space-cadet);
   }
 }
 
@@ -455,13 +709,13 @@ body {
   color: var(--text-muted);
 }
 .text-primary {
-  color: var(--primary-color);
+  color: var(--accent-color);
 }
 .text-success {
-  color: var(--success-color);
+  color: var(--accent-color);
 }
 .text-warning {
-  color: var(--warning-color);
+  color: var(--accent-color);
 }
 .text-danger {
   color: var(--danger-color);
