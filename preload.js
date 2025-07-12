@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld(
     getProjectTags: (projectId) => ipcRenderer.invoke('db:getProjectTags', projectId),
     filterProjects: (filters) => ipcRenderer.invoke('db:filterProjects', filters),
     readAls: (filePath) => ipcRenderer.invoke('file:readAls', filePath),
-    updateMetadata: () => ipcRenderer.invoke('db:updateMetadata')
+    updateMetadata: () => ipcRenderer.invoke('db:updateMetadata'),
+    updateProjectStatus: (projectId, status) => ipcRenderer.invoke('db:updateProjectStatus', projectId, status)
   }
 );

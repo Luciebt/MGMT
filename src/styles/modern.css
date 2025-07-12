@@ -370,6 +370,73 @@ textarea::placeholder {
   position: relative;
 }
 
+/* Status Dropdown */
+.status-cell {
+  text-align: center;
+  min-width: 120px;
+}
+
+.status-dropdown-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.status-dropdown {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right var(--spacing-xs) center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: calc(var(--spacing-lg) + 16px);
+}
+
+.status-dropdown:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(42, 50, 75, 0.1);
+}
+
+.status-dropdown:hover {
+  border-color: var(--primary-color);
+}
+
+.status-dropdown:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.status-loading {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--font-size-sm);
+  color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
 /* Interactive Tag System */
 .tags-container {
   display: flex;
@@ -983,11 +1050,13 @@ textarea::placeholder {
 
 /* Progressive column hiding for optimal mobile UX */
 @media (max-width: 900px) {
-  /* Hide BPM and Key columns first on medium screens */
+  /* Hide BPM, Key, and Status columns first on medium screens */
   .project-table th:nth-child(3),
   .project-table td:nth-child(3),
   .project-table th:nth-child(4),
-  .project-table td:nth-child(4) {
+  .project-table td:nth-child(4),
+  .project-table th:nth-child(5),
+  .project-table td:nth-child(5) {
     display: none;
   }
 

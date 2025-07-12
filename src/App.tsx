@@ -18,6 +18,7 @@ declare global {
       filterProjects: (filters: any) => Promise<any[]>;
       readAls: (filePath: string) => Promise<any>;
       updateMetadata: () => Promise<void>;
+      updateProjectStatus: (projectId: number, status: string) => Promise<void>;
     };
   }
 }
@@ -29,6 +30,7 @@ function App() {
   const [allTags, setAllTags] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
@@ -112,6 +114,11 @@ function App() {
     // Note: fetchProjectsAndTags is called in the individual functions above
   };
 
+  const handleUpdateProjectStatus = async (projectId: number, status: string) => {
+    await window.electronAPI.updateProjectStatus(projectId, status);
+    fetchProjectsAndTags(); // Re-fetch projects to update UI
+  };
+
   const handleFilterProjects = async () => {
     // Get all projects first
     const allProjects = await window.electronAPI.getProjects();
@@ -150,6 +157,13 @@ function App() {
       );
     }
 
+    // Filter by selected statuses
+    if (selectedStatuses.length > 0) {
+      filtered = filtered.filter((project) =>
+        selectedStatuses.includes(project.status || 'None')
+      );
+    }
+
     console.log('App.tsx: Filtered projects with tags:', filtered);
     setProjects(filtered);
   };
@@ -159,6 +173,14 @@ function App() {
       prevSelectedTags.includes(tagName)
         ? prevSelectedTags.filter((tag) => tag !== tagName)
         : [...prevSelectedTags, tagName]
+    );
+  };
+
+  const handleStatusFilterChange = (statusName: string) => {
+    setSelectedStatuses((prevSelectedStatuses) =>
+      prevSelectedStatuses.includes(statusName)
+        ? prevSelectedStatuses.filter((status) => status !== statusName)
+        : [...prevSelectedStatuses, statusName]
     );
   };
 
@@ -188,7 +210,7 @@ function App() {
 
   useEffect(() => {
     handleFilterProjects();
-  }, [searchTerm, selectedTags]); // Re-filter when search term or selected tags change
+  }, [searchTerm, selectedTags, selectedStatuses]); // Re-filter when search term, selected tags, or selected statuses change
 
   return (
     <div className="app-container">
@@ -210,15 +232,18 @@ function App() {
       )}
 
       <ProjectFilters
-        filter={{ projectName: searchTerm, tagNames: selectedTags }}
-        onFilterChange={({ projectName, tagNames }) => {
+        filter={{ projectName: searchTerm, tagNames: selectedTags, statusNames: selectedStatuses }}
+        onFilterChange={({ projectName, tagNames, statusNames }) => {
           if (projectName !== undefined) setSearchTerm(projectName || '');
           if (tagNames !== undefined) setSelectedTags(tagNames);
+          if (statusNames !== undefined) setSelectedStatuses(statusNames);
         }}
         tags={allTags}
         selectedTags={selectedTags}
         onTagSelectionChange={handleTagFilterChange}
         onAddTag={handleAddTag}
+        selectedStatuses={selectedStatuses}
+        onStatusSelectionChange={handleStatusFilterChange}
       />
 
       {projects.length > 0 && (
@@ -232,6 +257,7 @@ function App() {
               sortColumn={sortColumn}
               sortDirection={sortDirection}
               onUpdateProjectTags={handleUpdateProjectTags}
+              onUpdateProjectStatus={handleUpdateProjectStatus}
             />
           </div>
         </ErrorBoundary>

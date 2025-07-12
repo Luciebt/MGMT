@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 interface ProjectFilter {
   projectName?: string;
   tagNames?: string[];
+  statusNames?: string[];
 }
 
 interface Tag {
@@ -17,6 +18,8 @@ interface ProjectFiltersProps {
   selectedTags: string[];
   onTagSelectionChange: (tagName: string) => void;
   onAddTag: (tagName: string) => Promise<void>;
+  selectedStatuses?: string[];
+  onStatusSelectionChange: (statusName: string) => void;
 }
 
 export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
@@ -25,13 +28,17 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
   tags,
   selectedTags,
   onTagSelectionChange,
-  onAddTag
+  onAddTag,
+  selectedStatuses = [],
+  onStatusSelectionChange
 }) => {
   const [searchTerm, setSearchTerm] = useState(filter.projectName || '');
   const [newTagName, setNewTagName] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [tagSearchTerm, setTagSearchTerm] = useState('');
   const [isAddingTag, setIsAddingTag] = useState(false);
+
+  const STATUS_OPTIONS = ['None', 'Demo', 'Template', 'WIP', 'Mix', 'Mastering', 'Done'];
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -69,6 +76,7 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     setSearchTerm('');
     setTagSearchTerm('');
     selectedTags.forEach(tag => onTagSelectionChange(tag));
+    selectedStatuses.forEach(status => onStatusSelectionChange(status));
     onFilterChange({});
   };
 
@@ -77,6 +85,7 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
   );
 
   const selectedTagsCount = selectedTags.length;
+  const selectedStatusesCount = selectedStatuses.length;
 
   return (
     <div className="project-filters">
@@ -101,6 +110,12 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
             </span>
           )}
           
+          {selectedStatusesCount > 0 && (
+            <span className="filter-badge">
+              {selectedStatusesCount} status{selectedStatusesCount > 1 ? 'es' : ''}
+            </span>
+          )}
+          
           <button 
             className="filter-expand-btn"
             onClick={() => setIsExpanded(!isExpanded)}
@@ -112,7 +127,7 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
             Filters
           </button>
 
-          {(searchTerm || selectedTagsCount > 0) && (
+          {(searchTerm || selectedTagsCount > 0 || selectedStatusesCount > 0) && (
             <button className="filter-clear-btn" onClick={clearFilters}>
               <svg viewBox="0 0 20 20" fill="currentColor">
                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
@@ -204,6 +219,31 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
                 No tags available yet. Create your first tag using the field above!
               </div>
             )}
+          </div>
+          
+          {/* Status Filtering Block */}
+          <div className="tag-management-section">
+            <div className="tag-management-header">
+              <h4>Filter by Status</h4>
+            </div>
+
+            <div className="tag-filter-grid">
+              {STATUS_OPTIONS.map((status) => (
+                <label key={status} className="tag-filter-item">
+                  <input
+                    type="checkbox"
+                    checked={selectedStatuses.includes(status)}
+                    onChange={() => onStatusSelectionChange(status)}
+                  />
+                  <span className="tag-filter-label">{status}</span>
+                  <span className="tag-filter-checkmark">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
       )}

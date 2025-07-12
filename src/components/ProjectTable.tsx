@@ -1,5 +1,6 @@
 import React from 'react';
 import { InteractiveTags } from './InteractiveTags';
+import { StatusDropdown } from './StatusDropdown';
 
 interface Project {
   id: number;
@@ -9,6 +10,7 @@ interface Project {
   creationDate: string;
   bpm: number | null;
   key: string | null;
+  status?: string;
   tags?: Array<{ id: number; name: string }>;
 }
 
@@ -19,6 +21,7 @@ interface ProjectTableProps {
   sortColumn: string | null;
   sortDirection: 'asc' | 'desc' | null;
   onUpdateProjectTags: (projectId: number, newTags: string[]) => Promise<void>;
+  onUpdateProjectStatus: (projectId: number, status: string) => Promise<void>;
 }
 
 export const ProjectTable: React.FC<ProjectTableProps> = ({
@@ -27,7 +30,8 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
   onSort,
   sortColumn,
   sortDirection,
-  onUpdateProjectTags
+  onUpdateProjectTags,
+  onUpdateProjectStatus
 }) => {
   const renderSortIcon = (column: string) => {
     if (sortColumn === column) {
@@ -57,6 +61,9 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
             <th onClick={() => onSort('key')} className="sortable">
               Key{renderSortIcon('key')}
             </th>
+            <th onClick={() => onSort('status')} className="sortable">
+              Status{renderSortIcon('status')}
+            </th>
             <th>Tags</th>
           </tr>
         </thead>
@@ -78,6 +85,12 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
               </td>
               <td className="key-cell">
                 {project.key || '-'}
+              </td>
+              <td className="status-cell">
+                <StatusDropdown
+                  currentStatus={project.status || 'None'}
+                  onStatusChange={(newStatus) => onUpdateProjectStatus(project.id, newStatus)}
+                />
               </td>
               <td className="tags-cell">
                 <InteractiveTags

@@ -22,7 +22,8 @@ db.exec(`
     alsFilePath TEXT NOT NULL,
     creationDate TEXT,
     bpm REAL,
-    key TEXT
+    key TEXT,
+    status TEXT DEFAULT 'None'
   )
 `);
 
@@ -41,6 +42,12 @@ try {
 
 try {
   db.exec(`ALTER TABLE projects ADD COLUMN creationDate TEXT`);
+} catch (e) {
+  // Column already exists, ignore error
+}
+
+try {
+  db.exec(`ALTER TABLE projects ADD COLUMN status TEXT DEFAULT 'None'`);
 } catch (e) {
   // Column already exists, ignore error
 }
@@ -177,6 +184,7 @@ async function discoverAbletonProjects(rootPath) {
           creationDate: stats.birthtime.toISOString(),
           bpm,
           key,
+          status: 'None', // Default status
         };
 
         projects.push(project);
@@ -192,6 +200,7 @@ async function discoverAbletonProjects(rootPath) {
             creationDate: stats.birthtime.toISOString(),
             bpm: null,
             key: null,
+            status: 'None', // Default status
           };
           projects.push(project);
         } catch (statError) {
@@ -263,7 +272,7 @@ app.whenReady().then(() => {
 
     // Save discovered projects to database
     const insert = db.prepare(
-      'INSERT OR IGNORE INTO projects (projectName, projectPath, alsFilePath, creationDate, bpm, key) VALUES (?, ?, ?, ?, ?, ?)'
+      'INSERT OR IGNORE INTO projects (projectName, projectPath, alsFilePath, creationDate, bpm, key, status) VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
     db.transaction(() => {
       for (const project of projects) {
@@ -273,7 +282,8 @@ app.whenReady().then(() => {
           project.alsFilePath,
           project.creationDate,
           project.bpm,
-          project.key
+          project.key,
+          project.status
         );
       }
     })();
@@ -365,6 +375,11 @@ app.whenReady().then(() => {
   ipcMain.handle('db:updateMetadata', async () => {
     await updateExistingProjectsWithMetadata();
     return { success: true };
+  });
+
+  ipcMain.handle('db:updateProjectStatus', (event, projectId, status) => {
+    const update = db.prepare('UPDATE projects SET status = ? WHERE id = ?');
+    return update.run(status, projectId);
   });
 
   ipcMain.handle('file:readAls', async (event, filePath) => {
