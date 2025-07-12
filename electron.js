@@ -306,7 +306,12 @@ app.whenReady().then(() => {
 
   ipcMain.handle('db:addProjectTag', (event, projectId, tagId) => {
     const insert = db.prepare('INSERT OR IGNORE INTO project_tags (project_id, tag_id) VALUES (?, ?)');
-    insert.run(projectId, tagId);
+    return insert.run(projectId, tagId);
+  });
+
+  ipcMain.handle('db:removeProjectTag', (event, projectId, tagId) => {
+    const remove = db.prepare('DELETE FROM project_tags WHERE project_id = ? AND tag_id = ?');
+    return remove.run(projectId, tagId);
   });
 
   ipcMain.handle('db:getTags', () => {

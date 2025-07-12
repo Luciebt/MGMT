@@ -1,4 +1,5 @@
 import React from 'react';
+import { InteractiveTags } from './InteractiveTags';
 
 interface Project {
   id: number;
@@ -13,18 +14,20 @@ interface Project {
 
 interface ProjectTableProps {
   projects: Project[];
+  allTags: Array<{ id: number; name: string }>;
   onSort: (column: string) => void;
   sortColumn: string | null;
   sortDirection: 'asc' | 'desc' | null;
-  onAddProjectTag: (projectId: number, tagName: string) => Promise<void>;
+  onUpdateProjectTags: (projectId: number, newTags: string[]) => Promise<void>;
 }
 
 export const ProjectTable: React.FC<ProjectTableProps> = ({
   projects,
+  allTags,
   onSort,
   sortColumn,
   sortDirection,
-  onAddProjectTag
+  onUpdateProjectTags
 }) => {
   const renderSortIcon = (column: string) => {
     if (sortColumn === column) {
@@ -33,12 +36,8 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
     return '';
   };
 
-  const handleAddTag = async (projectId: number, inputElement: HTMLInputElement) => {
-    const tagName = inputElement.value.trim();
-    if (tagName) {
-      await onAddProjectTag(projectId, tagName);
-      inputElement.value = '';
-    }
+  const handleTagsChange = async (projectId: number, newTags: string[]) => {
+    await onUpdateProjectTags(projectId, newTags);
   };
 
   return (
@@ -59,7 +58,6 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
               Key{renderSortIcon('key')}
             </th>
             <th>Tags</th>
-            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -82,39 +80,12 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
                 {project.key || '-'}
               </td>
               <td className="tags-cell">
-                {project.tags && project.tags.length > 0 
-                  ? project.tags.map(tag => tag.name).join(', ')
-                  : '-'
-                }
-              </td>
-              <td className="actions-cell">
-                <div className="tag-input-group">
-                  <input
-                    type="text"
-                    placeholder="Add tag"
-                    className="tag-input"
-                    maxLength={50}
-                    onKeyDown={async (e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        await handleAddTag(project.id, e.target as HTMLInputElement);
-                      }
-                    }}
-                  />
-                  <button
-                    className="add-tag-btn"
-                    type="button"
-                    aria-label={`Add tag to ${project.projectName}`}
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      const input = (e.target as HTMLButtonElement)
-                        .previousSibling as HTMLInputElement;
-                      await handleAddTag(project.id, input);
-                    }}
-                  >
-                    Add
-                  </button>
-                </div>
+                <InteractiveTags
+                  tags={project.tags ? project.tags.map(tag => tag.name) : []}
+                  allTags={allTags.map(tag => tag.name)}
+                  onTagsChange={(newTags) => handleTagsChange(project.id, newTags)}
+                  maxTags={10}
+                />
               </td>
             </tr>
           ))}

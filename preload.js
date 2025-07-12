@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld(
     getProjects: () => ipcRenderer.invoke('db:getProjects'),
     addTag: (tagName) => ipcRenderer.invoke('db:addTag', tagName),
     addProjectTag: (projectId, tagId) => ipcRenderer.invoke('db:addProjectTag', projectId, tagId),
+    removeProjectTag: (projectId, tagId) => ipcRenderer.invoke('db:removeProjectTag', projectId, tagId),
     getTags: () => ipcRenderer.invoke('db:getTags'),
     getProjectTags: (projectId) => ipcRenderer.invoke('db:getProjectTags', projectId),
     filterProjects: (filters) => ipcRenderer.invoke('db:filterProjects', filters),

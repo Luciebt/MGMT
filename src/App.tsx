@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import './styles/modern.css';
 import { ProjectTable } from './components/ProjectTable';
+import { ProjectFilters } from './components/ProjectFilters';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 declare global {
@@ -11,11 +12,12 @@ declare global {
       getProjects: () => Promise<any[]>;
       addTag: (tagName: string) => Promise<number>;
       addProjectTag: (projectId: number, tagId: number) => Promise<void>;
+      removeProjectTag: (projectId: number, tagId: number) => Promise<void>;
       getTags: () => Promise<any[]>;
       getProjectTags: (projectId: number) => Promise<any[]>;
-      filterProjects: (filters: { projectName?: string; tagNames?: string[] }) => Promise<any[]>;
-      readAls: (filePath: string) => Promise<any | null>;
-      updateMetadata: () => Promise<{ success: boolean }>;
+      filterProjects: (filters: any) => Promise<any[]>;
+      readAls: (filePath: string) => Promise<any>;
+      updateMetadata: () => Promise<void>;
     };
   }
 }
@@ -24,7 +26,6 @@ function App() {
   const [rootDirectory, setRootDirectory] = useState<string | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
   const [parsedData, setParsedData] = useState<any>(null);
-  const [newTag, setNewTag] = useState<string>('');
   const [allTags, setAllTags] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -65,10 +66,9 @@ function App() {
     }
   };
 
-  const handleAddTag = async () => {
-    if (newTag.trim() !== '') {
-      await window.electronAPI.addTag(newTag.trim());
-      setNewTag('');
+  const handleAddTag = async (tagName: string) => {
+    if (tagName.trim() !== '') {
+      await window.electronAPI.addTag(tagName.trim());
       fetchProjectsAndTags(); // Re-fetch all tags
     }
   };
@@ -81,20 +81,77 @@ function App() {
     }
   };
 
-  const handleFilterProjects = async () => {
-    const filtered = await window.electronAPI.filterProjects({
-      projectName: searchTerm,
-      tagNames: selectedTags.length > 0 ? selectedTags : undefined,
-    });
+  const handleRemoveProjectTag = async (projectId: number, tagName: string) => {
+    // Find the tag ID by name
+    const tag = allTags.find(t => t.name === tagName);
+    if (tag) {
+      await window.electronAPI.removeProjectTag(projectId, tag.id);
+      fetchProjectsAndTags(); // Re-fetch projects and tags to update UI
+    }
+  };
 
-    const filteredProjectsWithTags = await Promise.all(
-      filtered.map(async (project: any) => {
+  const handleUpdateProjectTags = async (projectId: number, newTags: string[]) => {
+    // Get current project tags
+    const currentTags = await window.electronAPI.getProjectTags(projectId);
+    const currentTagNames = currentTags.map((tag: any) => tag.name);
+
+    // Find tags to add and remove
+    const tagsToAdd = newTags.filter(tag => !currentTagNames.includes(tag));
+    const tagsToRemove = currentTagNames.filter((tag: string) => !newTags.includes(tag));
+
+    // Add new tags
+    for (const tagName of tagsToAdd) {
+      await handleAddProjectTag(projectId, tagName);
+    }
+
+    // Remove old tags
+    for (const tagName of tagsToRemove) {
+      await handleRemoveProjectTag(projectId, tagName);
+    }
+
+    // Note: fetchProjectsAndTags is called in the individual functions above
+  };
+
+  const handleFilterProjects = async () => {
+    // Get all projects first
+    const allProjects = await window.electronAPI.getProjects();
+    const projectsWithTags = await Promise.all(
+      allProjects.map(async (project: any) => {
         const projectTags = await window.electronAPI.getProjectTags(project.id);
         return { ...project, tags: projectTags };
       })
     );
-    console.log('App.tsx: Filtered projects with tags:', filteredProjectsWithTags);
-    setProjects(filteredProjectsWithTags);
+
+    // Apply client-side filtering
+    let filtered = projectsWithTags;
+
+    // Filter by search term (case-insensitive search in project name and tags)
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter((project) => {
+        // Check project name
+        const nameMatch = project.projectName?.toLowerCase().includes(searchLower);
+        
+        // Check tags
+        const tagMatch = project.tags?.some((tag: any) => 
+          tag.name?.toLowerCase().includes(searchLower)
+        );
+        
+        return nameMatch || tagMatch;
+      });
+    }
+
+    // Filter by selected tags
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter((project) =>
+        selectedTags.every((selectedTag) =>
+          project.tags?.some((tag: any) => tag.name === selectedTag)
+        )
+      );
+    }
+
+    console.log('App.tsx: Filtered projects with tags:', filtered);
+    setProjects(filtered);
   };
 
   const handleTagFilterChange = (tagName: string) => {
@@ -136,7 +193,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="app-header">
-        <h1 className="app-title">Ableton Live Project Manager</h1>
+        <h1 className="app-title">MGMT</h1>
         <div className="header-actions">
           <button className="btn btn-outline" onClick={handleRefresh}>Refresh</button>
           <button className="btn btn-secondary" onClick={handleOpenRootDirectory}>
@@ -152,48 +209,17 @@ function App() {
         </div>
       )}
 
-      <div className="mb-4">
-        <h2>Manage Tags:</h2>
-        <div className="d-flex align-items-center gap-2 mb-3">
-          <input
-            type="text"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            placeholder="Add new tag"
-            className="form-input"
-            style={{ maxWidth: '300px' }}
-          />
-          <button className="btn btn-success" onClick={handleAddTag}>Add Tag</button>
-        </div>
-        {allTags.length > 0 && (
-          <div className="mb-3">
-            <h3>All Available Tags:</h3>
-            <div className="tag-checkboxes">
-              {allTags.map((tag) => (
-                <label key={tag.id} className="tag-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={selectedTags.includes(tag.name)}
-                    onChange={() => handleTagFilterChange(tag.name)}
-                  />
-                  <span className="tag-name">{tag.name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="mb-4">
-        <h2>Filter Projects:</h2>
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search by project name"
-          className="form-input search-input"
-        />
-      </div>
+      <ProjectFilters
+        filter={{ projectName: searchTerm, tagNames: selectedTags }}
+        onFilterChange={({ projectName, tagNames }) => {
+          if (projectName !== undefined) setSearchTerm(projectName || '');
+          if (tagNames !== undefined) setSelectedTags(tagNames);
+        }}
+        tags={allTags}
+        selectedTags={selectedTags}
+        onTagSelectionChange={handleTagFilterChange}
+        onAddTag={handleAddTag}
+      />
 
       {projects.length > 0 && (
         <ErrorBoundary>
@@ -201,10 +227,11 @@ function App() {
             <h3>Discovered Ableton Projects:</h3>
             <ProjectTable
               projects={sortedProjects}
+              allTags={allTags}
               onSort={handleSort}
               sortColumn={sortColumn}
               sortDirection={sortDirection}
-              onAddProjectTag={handleAddProjectTag}
+              onUpdateProjectTags={handleUpdateProjectTags}
             />
           </div>
         </ErrorBoundary>
