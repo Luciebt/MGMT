@@ -31,8 +31,8 @@ function App() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+  const [sortColumn, setSortColumn] = useState<string | null>('creationDate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>('desc');
 
   const fetchProjectsAndTags = async () => {
     console.log('App.tsx: fetchProjectsAndTags called');
