@@ -1,0 +1,117 @@
+/* 
+  Modern CSS Architecture for Ableton Project Manager
+  
+  This file imports all modular CSS files in the correct order:
+  1. Variables & Design System
+  2. Base styles & Reset
+  3. Layout utilities
+  4. Component styles
+  5. Utilities
+*/
+
+/* 1. Design System Variables */
+@import "./variables.css";
+
+/* 2. Base Styles & Reset */
+@import "./base.css";
+
+/* 3. Layout System */
+@import "./layout.css";
+
+/* 4. Component Styles */
+@import "./buttons.css";
+@import "./forms.css";
+@import "./table.css";
+@import "./tags.css";
+@import "./filters.css";
+@import "./status.css";
+@import "./components.css";
+
+/* 5. Utility Classes */
+@import "./utilities.css";
+
+/* 
+  Print Styles 
+  Optimized for printing tables and project information
+*/
+@media print {
+  body {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #000;
+    background: #fff;
+  }
+
+  .app-container {
+    max-width: none;
+    padding: 0;
+  }
+
+  .app-header {
+    border-bottom: 2px solid #000;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .project-filters,
+  .header-actions,
+  .btn,
+  .filter-expanded-panel {
+    display: none !important;
+  }
+
+  .project-table-container {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  .project-table th,
+  .project-table td {
+    border: 1px solid #000;
+    padding: 0.25rem;
+    font-size: 10px;
+  }
+
+  .project-table th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold;
+  }
+
+  .project-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9 !important;
+  }
+
+  .tags-container {
+    background: none !important;
+    border: none !important;
+  }
+
+  .tag-pill {
+    background-color: #e0e0e0 !important;
+    color: #000 !important;
+    border: 1px solid #ccc;
+  }
+
+  .tag-pill-remove,
+  .tag-add-button {
+    display: none !important;
+  }
+
+  /* Page breaks */
+  .project-table {
+    page-break-inside: auto;
+  }
+
+  .project-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .project-table thead {
+    display: table-header-group;
+  }
+
+  .project-table tbody {
+    display: table-row-group;
+  }
+}

@@ -1,0 +1,65 @@
+/* Error Boundary and Loading States */
+
+.error-boundary {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--danger-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-6);
+  margin: var(--spacing-6) 0;
+}
+
+.error-boundary h2 {
+  color: var(--danger-color);
+  margin-top: 0;
+  margin-bottom: var(--spacing-4);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.error-boundary details {
+  margin: var(--spacing-4) 0;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  background-color: var(--bg-primary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-3);
+}
+
+.error-boundary summary {
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  color: var(--danger-color);
+  margin-bottom: var(--spacing-2);
+}
+
+.error-boundary summary:hover {
+  color: var(--danger-hover);
+}
+
+.retry-button {
+  background-color: var(--danger-color);
+  color: white;
+  border: 1px solid var(--danger-color);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-weight: var(--font-weight-medium);
+}
+
+.retry-button:hover {
+  background-color: var(--danger-hover);
+  border-color: var(--danger-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow);
+}
+
+.retry-button:focus-visible {
+  outline: 2px solid var(--danger-color);
+  outline-offset: 2px;
+}
+
+/* Removed unused loading states - they are not used in the codebase */
+
+/* Removed unused alert and progress components - they are not used in the codebase */

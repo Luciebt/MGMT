@@ -1,0 +1,50 @@
+/* Layout Components */
+
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  width: 100%;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.app-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+  margin: 0;
+  text-shadow: 1px 1px 2px rgba(42, 50, 75, 0.1);
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* Responsive adjustments for used classes only */
+@media (max-width: 768px) {
+  .app-container {
+    padding: var(--spacing-4);
+  }
+
+  .app-header {
+    flex-direction: column;
+    gap: var(--spacing-4);
+    text-align: center;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}

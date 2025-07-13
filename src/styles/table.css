@@ -1,0 +1,263 @@
+/* Project Table Styles */
+
+.project-table-container {
+  background-color: var(--bg-primary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.project-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  table-layout: fixed;
+}
+
+.project-table th,
+.project-table td {
+  padding: var(--spacing-4);
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.project-table th {
+  background-color: var(--bg-secondary);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.project-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--transition-base);
+}
+
+.project-table th.sortable:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.project-table th.sortable:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+}
+
+.project-table tbody tr {
+  transition: background-color var(--transition-base);
+}
+
+.project-table tbody tr:hover {
+  background-color: var(--bg-secondary);
+}
+
+.project-table tbody tr:nth-child(even) {
+  background-color: rgba(225, 229, 238, 0.3);
+}
+
+.project-table tbody tr:nth-child(even):hover {
+  background-color: var(--bg-secondary);
+}
+
+/* Table Cell Specific Styles */
+.project-name {
+  font-weight: var(--font-weight-medium);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-name[title]:hover {
+  cursor: help;
+}
+
+.bpm-cell,
+.key-cell {
+  text-align: center;
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+.creation-date-cell {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  min-width: 140px;
+}
+
+.creation-date-cell span {
+  cursor: help;
+}
+
+.tags-cell {
+  min-width: 200px;
+  position: relative;
+}
+
+.status-cell {
+  text-align: center;
+  min-width: 120px;
+}
+
+/* Sortable Table Headers */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--transition-base);
+}
+
+.sortable:hover {
+  background-color: var(--bg-secondary);
+}
+
+/* Remove unused sort-icon class - not used in components */
+
+/* Table Responsive Design */
+@media (max-width: 1200px) {
+  .project-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .project-table {
+    min-width: 650px;
+    table-layout: auto;
+  }
+}
+
+/* Progressive column hiding for optimal mobile UX */
+@media (max-width: 900px) {
+  /* Hide BPM, Key, and Status columns first on medium screens */
+  .project-table th:nth-child(3),
+  .project-table td:nth-child(3),
+  .project-table th:nth-child(4),
+  .project-table td:nth-child(4),
+  .project-table th:nth-child(5),
+  .project-table td:nth-child(5) {
+    display: none;
+  }
+
+  .project-table {
+    min-width: 500px;
+  }
+
+  .tags-cell {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .project-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--border-radius);
+  }
+
+  .project-table {
+    min-width: 450px;
+    table-layout: auto;
+  }
+
+  .project-table th,
+  .project-table td {
+    padding: var(--spacing-2);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Sticky tags column for all breakpoints */
+  .project-table th:last-child,
+  .project-table td:last-child {
+    position: sticky;
+    right: 0;
+    background-color: var(--bg-secondary);
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+    z-index: 11;
+  }
+
+  .project-table tbody td:last-child {
+    background-color: var(--bg-primary);
+  }
+
+  .project-table tbody tr:hover td:last-child {
+    background-color: var(--bg-secondary);
+  }
+
+  .project-table tbody tr:nth-child(even) td:last-child {
+    background-color: rgba(225, 229, 238, 0.3);
+  }
+
+  .project-table tbody tr:nth-child(even):hover td:last-child {
+    background-color: var(--bg-secondary);
+  }
+
+  .project-name {
+    max-width: 150px;
+  }
+
+  .creation-date-cell {
+    min-width: 110px;
+    font-size: var(--font-size-xs);
+  }
+
+  .tags-cell {
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Hide creation date column on very small screens */
+  .project-table th:nth-child(2),
+  .project-table td:nth-child(2) {
+    display: none;
+  }
+
+  .project-table {
+    min-width: 320px;
+  }
+
+  .project-name {
+    max-width: none;
+    min-width: 140px;
+  }
+
+  .tags-cell {
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-table {
+    min-width: 280px;
+  }
+
+  .project-table th,
+  .project-table td {
+    padding: var(--spacing-1);
+    font-size: var(--font-size-xs);
+  }
+
+  /* Enhanced shadow for smallest screens */
+  .project-table th:last-child,
+  .project-table td:last-child {
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .project-name {
+    min-width: 120px;
+    font-size: var(--font-size-xs);
+  }
+
+  .tags-cell {
+    min-width: 130px;
+  }
+}

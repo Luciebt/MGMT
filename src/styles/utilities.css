@@ -1,0 +1,16 @@
+/* Utility Classes - Only keeping classes that are actually used in the codebase */
+
+/* Text Utilities */
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* Spacing Utilities */
+.mb-4 {
+  margin-bottom: var(--spacing-4);
+}
+
+/* Flexbox Utilities */
+.flex-grow {
+  flex-grow: 1;
+}

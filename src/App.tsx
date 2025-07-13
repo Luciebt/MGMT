@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import './App.css';
-import './styles/modern.css';
+import './styles/index.css';
 import { ProjectTable } from './components/ProjectTable';
 import { ProjectFilters } from './components/ProjectFilters';
 import { ErrorBoundary } from './components/ErrorBoundary';
