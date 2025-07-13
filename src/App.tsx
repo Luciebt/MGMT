@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import './styles/index.css';
 import { ProjectTable } from './components/ProjectTable';
 import { ProjectFilters } from './components/ProjectFilters';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -34,9 +33,7 @@ function App() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>('desc');
 
   const fetchProjectsAndTags = async () => {
-    console.log('App.tsx: fetchProjectsAndTags called');
     const storedProjects = await window.electronAPI.getProjects();
-    console.log('App.tsx: Stored projects from DB:', storedProjects);
 
     const projectsWithTags = await Promise.all(
       storedProjects.map(async (project: any) => {
@@ -44,7 +41,6 @@ function App() {
         return { ...project, tags: projectTags };
       })
     );
-    console.log('App.tsx: Projects with tags:', projectsWithTags);
     
     // Extract only tags that are actually used by projects
     const usedTags = new Map();
@@ -147,7 +143,6 @@ function App() {
 
     // If no filters are active, show all projects
     if (!hasAnyFilters) {
-      console.log('App.tsx: No filters active, showing all projects:', projectsWithTags);
       setProjects(projectsWithTags);
       return;
     }
@@ -183,11 +178,10 @@ function App() {
     // Filter by selected statuses
     if (hasStatusFilters) {
       filtered = filtered.filter((project) =>
-        selectedStatuses.includes(project.status || 'None')
+        selectedStatuses.includes(project.status || 'None'        )
       );
     }
 
-    console.log('App.tsx: Filtered projects with tags:', filtered);
     setProjects(filtered);
   };
 
