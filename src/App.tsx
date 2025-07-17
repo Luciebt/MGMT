@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, createContext, useContext } from 'react';
 import './styles/index.css';
 import { ProjectTable } from './components/ProjectTable';
 import { ProjectFilters } from './components/ProjectFilters';
@@ -25,6 +25,56 @@ declare global {
   }
 }
 
+// Theme context and provider
+const ThemeContext = createContext<{
+  theme: string;
+  toggleTheme: () => void;
+} | undefined>(undefined);
+
+const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<string>('light');
+
+  useEffect(() => {
+    // Load theme preference from electronAPI
+    (async () => {
+      try {
+        const savedTheme = await window.electronAPI.getThemePreference();
+        setTheme(savedTheme);
+      } catch (error) {
+        // fallback to light
+        setTheme('light');
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    // Apply theme to body
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+    // Save theme preference
+    window.electronAPI.setThemePreference(theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  }, []);
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) throw new Error('useTheme must be used within a ThemeProvider');
+  return context;
+}
+
 function App() {
   const [rootDirectory, setRootDirectory] = useState<string | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
@@ -35,7 +85,8 @@ function App() {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [sortColumn, setSortColumn] = useState<string | null>('creationDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>('desc');
-  const [theme, setTheme] = useState<string>('light');
+  // Remove theme state and handlers from App, use context instead
+  const { theme, toggleTheme } = useTheme();
 
   const fetchProjectsAndTags = async () => {
     console.log('App.tsx: fetchProjectsAndTags called');
@@ -65,37 +116,14 @@ function App() {
 
   useEffect(() => {
     fetchProjectsAndTags();
-    initializeTheme();
+    // initializeTheme(); // This function is no longer needed
   }, []);
 
-  const initializeTheme = async () => {
-    try {
-      const savedTheme = await window.electronAPI.getThemePreference();
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    } catch (error) {
-      console.error('Failed to load theme preference:', error);
-    }
-  };
+  // initializeTheme function is removed as theme is now managed by context
 
-  const applyTheme = (themeName: string) => {
-    if (themeName === 'dark') {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
-  };
+  // applyTheme function is removed as theme is now managed by context
 
-  const handleThemeToggle = async () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    try {
-      await window.electronAPI.setThemePreference(newTheme);
-      setTheme(newTheme);
-      applyTheme(newTheme);
-    } catch (error) {
-      console.error('Failed to save theme preference:', error);
-    }
-  };
+  // handleThemeToggle function is removed as theme is now managed by context
 
   const handleOpenRootDirectory = async () => {
     const result = await window.electronAPI.openRootDirectory();
@@ -311,7 +339,7 @@ function App() {
         <div className="header-actions">
           <button 
             className="btn btn-outline" 
-            onClick={handleThemeToggle}
+            onClick={toggleTheme}
             title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
           >
             {theme === 'light' ? '🌙' : '☀️'}
@@ -381,4 +409,11 @@ function App() {
   );
 }
 
-export default App;
+// Wrap App in ThemeProvider
+export default function AppWithThemeProvider() {
+  return (
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  );
+}
