@@ -446,3 +446,67 @@
     order: -1; /* Put create field at the top on mobile */
   }
 }
+
+/* Status Filter Specific Styling - More Compact */
+.status-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-2);
+}
+
+.status-filter-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  user-select: none;
+  will-change: transform, box-shadow, background-color;
+  font-size: var(--font-size-xs);
+  min-height: 32px;
+}
+
+.status-filter-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(42, 50, 75, 0.1);
+  transform: translateY(-1px);
+}
+
+.status-filter-item:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(42, 50, 75, 0.1);
+}
+
+.status-filter-item.selected {
+  background-color: var(--accent-color);
+  border-color: var(--primary-color);
+  color: var(--space-cadet);
+}
+
+.status-filter-item input[type="checkbox"] {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.status-filter-item .tag-filter-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+@media (max-width: 768px) {
+  .status-filter-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .status-filter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

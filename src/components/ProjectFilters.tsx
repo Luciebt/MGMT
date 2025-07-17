@@ -265,11 +265,11 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
               <h4>Filter by Status</h4>
             </div>
 
-            <div className="tag-filter-grid">
+            <div className="status-filter-grid">
               {STATUS_OPTIONS.map((status) => (
                 <label 
                   key={status} 
-                  className={`tag-filter-item ${selectedStatuses.includes(status) ? 'selected' : ''}`}
+                  className={`status-filter-item ${selectedStatuses.includes(status) ? 'selected' : ''}`}
                 >
                   <input
                     type="checkbox"
