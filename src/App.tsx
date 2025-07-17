@@ -88,7 +88,6 @@ function removeTagFromState(tags: any[], tagId: number) {
 function App() {
   const [rootDirectory, setRootDirectory] = useState<string | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
-  const [parsedData, setParsedData] = useState<any>(null);
   const [allTags, setAllTags] = useState<any[]>([]);
   // Group filter and sort state into objects with explicit types
   const [filters, setFilters] = useState<{ searchTerm: string; selectedTags: string[]; selectedStatuses: string[] }>({ searchTerm: '', selectedTags: [], selectedStatuses: [] });
@@ -114,11 +113,6 @@ function App() {
     
     setProjects(projectsWithTags);
     setAllTags(allAvailableTags);
-
-    if (projectsWithTags.length > 0 && projectsWithTags[0].alsFilePath) {
-      const data = await window.electronAPI.readAls(projectsWithTags[0].alsFilePath);
-      setParsedData(data);
-    }
   };
 
   useEffect(() => {
@@ -370,24 +364,6 @@ function App() {
             />
           </div>
         </ErrorBoundary>
-      )}
-
-      {parsedData && (
-        <div className="mb-4">
-          <h3>Parsed Data from first discovered ALS file:</h3>
-          <pre style={{ 
-            whiteSpace: 'pre-wrap', 
-            wordBreak: 'break-all',
-            backgroundColor: 'var(--bg-secondary)',
-            padding: 'var(--spacing-md)',
-            borderRadius: 'var(--border-radius)',
-            fontSize: 'var(--font-size-sm)',
-            maxHeight: '400px',
-            overflow: 'auto'
-          }}>
-            {JSON.stringify(parsedData, null, 2)}
-          </pre>
-        </div>
       )}
     </div>
   );
