@@ -8,8 +8,6 @@ interface Project {
   projectPath: string;
   alsFilePath: string;
   creationDate: string;
-  bpm: number | null;
-  key: string | null;
   status?: string;
   tags?: Array<{ id: number; name: string }>;
 }
@@ -55,12 +53,6 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
             <th onClick={() => onSort('creationDate')} className="sortable">
               Creation Date{renderSortIcon('creationDate')}
             </th>
-            <th onClick={() => onSort('bpm')} className="sortable">
-              BPM{renderSortIcon('bpm')}
-            </th>
-            <th onClick={() => onSort('key')} className="sortable">
-              Key{renderSortIcon('key')}
-            </th>
             <th onClick={() => onSort('status')} className="sortable">
               Status{renderSortIcon('status')}
             </th>
@@ -79,12 +71,6 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
                     {new Date(project.creationDate).toLocaleDateString()} {new Date(project.creationDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 ) : 'N/A'}
-              </td>
-              <td className="bpm-cell">
-                {project.bpm ? Math.round(project.bpm) : '-'}
-              </td>
-              <td className="key-cell">
-                {project.key || '-'}
               </td>
               <td className="status-cell">
                 <StatusDropdown

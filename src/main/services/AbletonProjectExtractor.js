@@ -27,8 +27,6 @@ class AbletonProjectExtractor {
             const parsedData = await parseStringPromise(decompressedData);
 
             const metadata = {
-                bpm: this.extractBPM(parsedData),
-                key: this.extractKey(parsedData),
                 version: this.extractVersion(parsedData),
                 tracks: this.extractTrackInfo(parsedData),
                 devices: this.extractDeviceInfo(parsedData),
@@ -45,87 +43,12 @@ class AbletonProjectExtractor {
         } catch (error) {
             console.error(`Failed to extract metadata from ${alsFilePath}:`, error);
             return {
-                bpm: null,
-                key: null,
                 version: null,
                 tracks: [],
                 devices: [],
                 fileSize: 0,
                 lastModified: null
             };
-        }
-    }
-
-    extractBPM(parsedData) {
-        try {
-            const liveSet = parsedData.Ableton?.LiveSet?.[0];
-            if (!liveSet) return null;
-
-            // Multiple BPM extraction strategies
-            const bpmPaths = [
-                // Master track tempo
-                () => liveSet.MasterTrack?.[0]?.DeviceChain?.[0]?.Mixer?.[0]?.Tempo?.[0]?.Manual?.[0]?.$?.Value,
-                // Transport tempo  
-                () => liveSet.Transport?.[0]?.Tempo?.[0]?.Manual?.[0]?.$?.Value,
-                // LiveSet level tempo
-                () => liveSet.Tempo?.[0]?.Manual?.[0]?.$?.Value,
-                // Alternative path
-                () => liveSet.MasterTrack?.[0]?.DeviceChain?.[0]?.Mixer?.[0]?.Tempo?.[0]?.$?.Value
-            ];
-
-            for (const extractPath of bpmPaths) {
-                const bpmValue = extractPath();
-                if (bpmValue !== undefined && bpmValue !== null) {
-                    const bpm = parseFloat(bpmValue);
-                    if (!isNaN(bpm) && bpm > 0 && bpm < 500) {
-                        console.log(`Found BPM: ${bpm}`);
-                        return bpm;
-                    }
-                }
-            }
-
-            console.log('BPM not found in any expected location');
-            return null;
-        } catch (error) {
-            console.error('Error extracting BPM:', error);
-            return null;
-        }
-    }
-
-    extractKey(parsedData) {
-        try {
-            const liveSet = parsedData.Ableton?.LiveSet?.[0];
-            if (!liveSet) return null;
-
-            // Key extraction strategies
-            const keyPaths = [
-                // Master track name
-                () => liveSet.MasterTrack?.[0]?.Name?.[0]?.$?.Value,
-                // LiveSet annotation
-                () => liveSet.Annotation?.[0]?.$?.Value,
-                // Project name
-                () => liveSet.Name?.[0]?.$?.Value
-            ];
-
-            const keyRegex = /\b([A-G][b#]?(?:m|min|maj|major)?)\b/i;
-
-            for (const extractPath of keyPaths) {
-                const textValue = extractPath();
-                if (textValue) {
-                    const keyMatch = textValue.match(keyRegex);
-                    if (keyMatch) {
-                        const key = this.normalizeKey(keyMatch[1]);
-                        console.log(`Found key: ${key}`);
-                        return key;
-                    }
-                }
-            }
-
-            console.log('Key not found in any expected location');
-            return null;
-        } catch (error) {
-            console.error('Error extracting key:', error);
-            return null;
         }
     }
 
@@ -165,23 +88,6 @@ class AbletonProjectExtractor {
         } catch (error) {
             return [];
         }
-    }
-
-    normalizeKey(key) {
-        // Normalize key names (e.g., "Cm" -> "C minor", "Fsharp" -> "F#")
-        const keyMap = {
-            'm': ' minor',
-            'min': ' minor',
-            'maj': ' major',
-            'major': ' major'
-        };
-
-        let normalized = key.replace(/[mb#]/g, match => {
-            if (match === 'm') return keyMap['m'];
-            return match;
-        });
-
-        return normalized;
     }
 
     async getFileHash(filePath) {
