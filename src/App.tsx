@@ -50,19 +50,12 @@ function App() {
     );
     console.log('App.tsx: Projects with tags:', projectsWithTags);
     
-    // Extract only tags that are actually used by projects
-    const usedTags = new Map();
-    projectsWithTags.forEach(project => {
-      project.tags?.forEach((tag: any) => {
-        if (!usedTags.has(tag.id)) {
-          usedTags.set(tag.id, tag);
-        }
-      });
-    });
-    const tagsInUse = Array.from(usedTags.values());
+    // Get all available tags from the database (not just used ones)
+    const allAvailableTags = await window.electronAPI.getTags();
+    console.log('App.tsx: All available tags:', allAvailableTags);
     
     setProjects(projectsWithTags);
-    setAllTags(tagsInUse);
+    setAllTags(allAvailableTags);
 
     if (projectsWithTags.length > 0 && projectsWithTags[0].alsFilePath) {
       const data = await window.electronAPI.readAls(projectsWithTags[0].alsFilePath);
@@ -121,7 +114,9 @@ function App() {
 
   const handleAddProjectTag = async (projectId: number, tagName: string) => {
     if (tagName.trim() !== '') {
+      console.log('App.tsx: Adding project tag - projectId:', projectId, 'tagName:', tagName);
       const tagId = await window.electronAPI.addTag(tagName.trim()); // Ensure tag exists and get its ID
+      console.log('App.tsx: Got tagId:', tagId, 'type:', typeof tagId);
       await window.electronAPI.addProjectTag(projectId, tagId);
       fetchProjectsAndTags(); // Re-fetch projects and tags to update UI
     }

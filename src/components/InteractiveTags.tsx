@@ -132,6 +132,7 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
 
   const handleSuggestionClick = (suggestion: string) => {
     handleAddTag(suggestion);
+    // Keep editing mode active - the input will automatically refocus
   };
 
   return (
@@ -184,8 +185,10 @@ export const InteractiveTags: React.FC<InteractiveTagsProps> = ({
                   className={`tag-autocomplete-item ${
                     index === highlightedIndex ? 'highlighted' : ''
                   }`}
-                  onMouseDown={(e) => e.preventDefault()} // Prevent blur
-                  onClick={() => handleSuggestionClick(suggestion)}
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Prevent blur
+                    handleSuggestionClick(suggestion);
+                  }}
                   onMouseEnter={() => setHighlightedIndex(index)}
                 >
                   {suggestion}

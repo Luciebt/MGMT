@@ -81,7 +81,9 @@ export class IPCHandlers {
 
     async handleAddTag(event, tagName) {
         try {
-            const tagId = this.database.addTag(tagName);
+            console.log('Adding tag:', tagName);
+            const tagId = this.database.insertTag(tagName);
+            console.log('Tag added with ID:', tagId);
             return tagId;
         } catch (error) {
             console.error('Error in handleAddTag:', error);
@@ -91,7 +93,9 @@ export class IPCHandlers {
 
     async handleAddProjectTag(event, projectId, tagId) {
         try {
+            console.log('Adding project tag - projectId:', projectId, 'tagId:', tagId);
             this.database.addProjectTag(projectId, tagId);
+            console.log('Project tag added successfully');
         } catch (error) {
             console.error('Error in handleAddProjectTag:', error);
             throw error;
@@ -109,7 +113,7 @@ export class IPCHandlers {
 
     async handleGetTags() {
         try {
-            const tags = this.database.getTags();
+            const tags = this.database.getAllTags();
             console.log('Fetched tags from DB:', tags);
             return tags;
         } catch (error) {

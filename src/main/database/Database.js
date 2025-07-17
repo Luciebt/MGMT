@@ -109,9 +109,33 @@ class ProjectDatabase {
 
     // Tag operations
     insertTag(name, color = '#007acc') {
-        const stmt = this.db.prepare('INSERT OR IGNORE INTO tags (name, color) VALUES (?, ?)');
-        const result = stmt.run(name, color);
-        return result.lastInsertRowid || this.db.prepare('SELECT id FROM tags WHERE name = ?').get(name).id;
+        try {
+            // First check if tag already exists
+            const existingTag = this.db.prepare('SELECT id FROM tags WHERE name = ?').get(name);
+            if (existingTag) {
+                console.log('Existing tag found with ID:', existingTag.id);
+                return existingTag.id;
+            }
+
+            // Insert new tag
+            const stmt = this.db.prepare('INSERT INTO tags (name, color) VALUES (?, ?)');
+            const result = stmt.run(name, color);
+
+            if (result.lastInsertRowid) {
+                console.log('New tag inserted with ID:', result.lastInsertRowid);
+                // Verify the insert was successful
+                const verifyTag = this.db.prepare('SELECT id FROM tags WHERE id = ?').get(result.lastInsertRowid);
+                if (!verifyTag) {
+                    throw new Error(`Failed to verify insertion of tag with ID ${result.lastInsertRowid}`);
+                }
+                return result.lastInsertRowid;
+            }
+
+            throw new Error(`Failed to insert tag: ${name}`);
+        } catch (error) {
+            console.error('Error in insertTag:', error);
+            throw error;
+        }
     }
 
     getAllTags() {
@@ -120,8 +144,29 @@ class ProjectDatabase {
 
     // Project-Tag operations
     addProjectTag(projectId, tagId) {
-        const stmt = this.db.prepare('INSERT OR IGNORE INTO project_tags (project_id, tag_id) VALUES (?, ?)');
-        return stmt.run(projectId, tagId);
+        try {
+            console.log('Database: Adding project tag - projectId:', projectId, 'tagId:', tagId);
+
+            // Verify that the project exists
+            const project = this.db.prepare('SELECT id FROM projects WHERE id = ?').get(projectId);
+            if (!project) {
+                throw new Error(`Project with ID ${projectId} does not exist`);
+            }
+
+            // Verify that the tag exists
+            const tag = this.db.prepare('SELECT id FROM tags WHERE id = ?').get(tagId);
+            if (!tag) {
+                throw new Error(`Tag with ID ${tagId} does not exist`);
+            }
+
+            const stmt = this.db.prepare('INSERT OR IGNORE INTO project_tags (project_id, tag_id) VALUES (?, ?)');
+            const result = stmt.run(projectId, tagId);
+            console.log('Database: Project tag operation result:', result);
+            return result;
+        } catch (error) {
+            console.error('Database: Error in addProjectTag:', error);
+            throw error;
+        }
     }
 
     removeProjectTag(projectId, tagId) {
