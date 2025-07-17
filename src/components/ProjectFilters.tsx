@@ -222,19 +222,28 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
                 <div 
                   key={tag.id} 
                   className={`tag-filter-item ${selectedTags.includes(tag.name) ? 'selected' : ''}`}
+                  onClick={(e) => {
+                    // Prevent triggering when clicking the delete button
+                    const target = e.target as Element;
+                    if (!target.closest('.tag-delete-btn')) {
+                      onTagSelectionChange(tag.name);
+                    }
+                  }}
                 >
-                  <label className="tag-filter-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedTags.includes(tag.name)}
-                      onChange={() => onTagSelectionChange(tag.name)}
-                    />
-                    <span className="tag-filter-label">{tag.name}</span>
-                  </label>
+                  <input
+                    type="checkbox"
+                    checked={selectedTags.includes(tag.name)}
+                    onChange={() => {}} // Remove onChange to prevent double triggering
+                    tabIndex={-1} // Remove from tab order since we handle clicks on the container
+                  />
+                  <span className="tag-filter-label">{tag.name}</span>
                   <button
                     type="button"
                     className="tag-delete-btn"
-                    onClick={() => handleDeleteTag(tag.id, tag.name)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the tag selection
+                      handleDeleteTag(tag.id, tag.name);
+                    }}
                     title={`Delete tag "${tag.name}"`}
                     aria-label={`Delete tag ${tag.name}`}
                   >

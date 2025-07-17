@@ -306,50 +306,7 @@
   }
 }
 
-/* Tag Filter Item with Delete Button */
-.tag-filter-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-2);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  background-color: var(--bg-primary);
-  transition: all var(--transition-base);
-  cursor: pointer;
-  min-height: 40px;
-}
-
-.tag-filter-item:hover {
-  border-color: var(--primary-color);
-  background-color: var(--bg-secondary);
-}
-
-.tag-filter-item.selected {
-  border-color: var(--primary-color);
-  background-color: rgba(47, 54, 76, 0.1);
-}
-
-.tag-filter-checkbox {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  cursor: pointer;
-  flex: 1;
-  margin: 0;
-}
-
-.tag-filter-checkbox input[type="checkbox"] {
-  display: none;
-}
-
-.tag-filter-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
-  cursor: pointer;
-  flex: 1;
-}
+/* Removed duplicate tag-filter-item styles - these are handled in filters.css */
 
 .tag-delete-btn {
   display: flex;
