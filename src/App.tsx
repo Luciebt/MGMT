@@ -107,8 +107,14 @@ function App() {
 
   const handleAddTag = async (tagName: string) => {
     if (tagName.trim() !== '') {
-      await window.electronAPI.addTag(tagName.trim());
-      fetchProjectsAndTags(); // Re-fetch all tags
+      const tagId = await window.electronAPI.addTag(tagName.trim());
+      // Only update allTags state
+      const newTag = { id: tagId, name: tagName.trim() };
+      setAllTags((prevTags) => {
+        // Avoid duplicates
+        if (prevTags.some((t) => t.id === tagId || t.name === tagName.trim())) return prevTags;
+        return [...prevTags, newTag];
+      });
     }
   };
 
@@ -116,7 +122,14 @@ function App() {
     try {
       // @ts-ignore - temporary fix for missing type declaration
       await window.electronAPI.deleteTag(tagId);
-      fetchProjectsAndTags(); // Re-fetch all tags and projects to update UI
+      // Remove tag from allTags and from all projects
+      setAllTags((prevTags) => prevTags.filter((t) => t.id !== tagId));
+      setProjects((prevProjects) =>
+        prevProjects.map((project) => ({
+          ...project,
+          tags: project.tags?.filter((tag: any) => tag.id !== tagId) || [],
+        }))
+      );
     } catch (error) {
       console.error('Error deleting tag:', error);
       throw error;
@@ -125,11 +138,28 @@ function App() {
 
   const handleAddProjectTag = async (projectId: number, tagName: string) => {
     if (tagName.trim() !== '') {
-      console.log('App.tsx: Adding project tag - projectId:', projectId, 'tagName:', tagName);
       const tagId = await window.electronAPI.addTag(tagName.trim()); // Ensure tag exists and get its ID
-      console.log('App.tsx: Got tagId:', tagId, 'type:', typeof tagId);
       await window.electronAPI.addProjectTag(projectId, tagId);
-      fetchProjectsAndTags(); // Re-fetch projects and tags to update UI
+      // Update the tags for the specific project in state
+      setProjects((prevProjects) =>
+        prevProjects.map((project) => {
+          if (project.id === projectId) {
+            // Add tag if not already present
+            if (!project.tags.some((tag: any) => tag.id === tagId)) {
+              return {
+                ...project,
+                tags: [...project.tags, { id: tagId, name: tagName.trim() }],
+              };
+            }
+          }
+          return project;
+        })
+      );
+      // Also update allTags if needed
+      setAllTags((prevTags) => {
+        if (prevTags.some((t) => t.id === tagId || t.name === tagName.trim())) return prevTags;
+        return [...prevTags, { id: tagId, name: tagName.trim() }];
+      });
     }
   };
 
@@ -138,7 +168,18 @@ function App() {
     const tag = allTags.find(t => t.name === tagName);
     if (tag) {
       await window.electronAPI.removeProjectTag(projectId, tag.id);
-      fetchProjectsAndTags(); // Re-fetch projects and tags to update UI
+      // Remove tag from the specific project in state
+      setProjects((prevProjects) =>
+        prevProjects.map((project) => {
+          if (project.id === projectId) {
+            return {
+              ...project,
+              tags: project.tags?.filter((t: any) => t.id !== tag.id) || [],
+            };
+          }
+          return project;
+        })
+      );
     }
   };
 
