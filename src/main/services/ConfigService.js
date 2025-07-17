@@ -13,6 +13,7 @@ export class ConfigService {
             extractionTimeout: 30000, // 30 seconds
             cacheEnabled: true,
             cacheTTL: 3600000, // 1 hour
+            theme: 'dark', // Default theme
         };
     }
 
@@ -74,5 +75,14 @@ export class ConfigService {
     // Update configuration
     updateConfig(updates) {
         this.config = { ...this.config, ...updates };
+    }
+
+    getThemePreference() {
+        return this.config.theme;
+    }
+
+    async setThemePreference(theme) {
+        this.config.theme = theme;
+        await this.saveConfig();
     }
 }

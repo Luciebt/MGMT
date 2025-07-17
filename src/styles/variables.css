@@ -8,7 +8,7 @@
   --french-gray: #c7ccdb;
   --alice-blue: #e1e5ee;
 
-  /* Semantic Colors */
+  /* Light Mode (Default) */
   --primary-color: var(--space-cadet);
   --primary-hover: #1e2436;
   --primary-dark: #1e2436;
@@ -25,31 +25,30 @@
   --info-color: #17a2b8;
   --info-hover: #138496;
 
-  /* Backgrounds */
   --bg-primary: #ffffff;
   --bg-secondary: var(--alice-blue);
   --bg-tertiary: var(--french-gray);
   --bg-overlay: rgba(42, 50, 75, 0.1);
 
-  /* Text */
   --text-primary: var(--space-cadet);
   --text-secondary: var(--slate-gray);
   --text-muted: var(--slate-gray);
   --text-inverse: #ffffff;
 
-  /* Layout */
   --border-color: var(--french-gray);
   --border-color-hover: var(--primary-color);
-  --border-radius: 0.375rem;
-  --border-radius-sm: 0.25rem;
-  --border-radius-lg: 0.5rem;
-  --border-radius-full: 50rem;
 
   /* Shadows */
   --box-shadow: 0 0.125rem 0.25rem rgba(42, 50, 75, 0.075);
   --box-shadow-sm: 0 0.0625rem 0.125rem rgba(42, 50, 75, 0.05);
   --box-shadow-lg: 0 0.5rem 1rem rgba(42, 50, 75, 0.15);
   --box-shadow-xl: 0 1rem 3rem rgba(42, 50, 75, 0.175);
+
+  /* Layout */
+  --border-radius: 0.375rem;
+  --border-radius-sm: 0.25rem;
+  --border-radius-lg: 0.5rem;
+  --border-radius-full: 50rem;
 
   /* Typography */
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -122,15 +121,115 @@
   --button-height-lg: 3rem;
 }
 
-/* Dark theme variables (for future implementation) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #2d2d2d;
-    --bg-tertiary: #404040;
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0a0;
-    --text-muted: #6b7280;
-    --border-color: #404040;
+/* Dark Mode */
+body.dark-mode {
+  --primary-color: var(--peach);
+  --primary-hover: #f9d4b3;
+  --primary-dark: #f5b380;
+  --secondary-color: var(--slate-gray);
+  --secondary-hover: #8e94aa;
+
+  --bg-primary: #1a1b26;
+  --bg-secondary: #24283b;
+  --bg-tertiary: #414868;
+  --bg-overlay: rgba(255, 255, 255, 0.1);
+
+  --text-primary: #c0caf5;
+  --text-secondary: #a9b1d6;
+  --text-muted: #565f89;
+  --text-inverse: #1a1b26;
+
+  --border-color: #2e334f;
+  --border-color-hover: var(--peach);
+
+  --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.15);
+  --box-shadow-sm: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.1);
+  --box-shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+  --box-shadow-xl: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+}
+
+/* 
+  Print Styles 
+  Optimized for printing tables and project information
+*/
+@media print {
+  body {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #000;
+    background: #fff;
+  }
+
+  .app-container {
+    max-width: none;
+    padding: 0;
+  }
+
+  .app-header {
+    border-bottom: 2px solid #000;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .project-filters,
+  .header-actions,
+  .btn,
+  .filter-expanded-panel {
+    display: none !important;
+  }
+
+  .project-table-container {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  .project-table th,
+  .project-table td {
+    border: 1px solid #000;
+    padding: 0.25rem;
+    font-size: 10px;
+  }
+
+  .project-table th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold;
+  }
+
+  .project-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9 !important;
+  }
+
+  .tags-container {
+    background: none !important;
+    border: none !important;
+  }
+
+  .tag-pill {
+    background-color: #e0e0e0 !important;
+    color: #000 !important;
+    border: 1px solid #ccc;
+  }
+
+  .tag-pill-remove,
+  .tag-add-button {
+    display: none !important;
+  }
+
+  /* Page breaks */
+  .project-table {
+    page-break-inside: auto;
+  }
+
+  .project-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .project-table thead {
+    display: table-header-group;
+  }
+
+  .project-table tbody {
+    display: table-row-group;
   }
 }

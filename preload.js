@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld(
     filterProjects: (filters) => ipcRenderer.invoke('db:filterProjects', filters),
     readAls: (filePath) => ipcRenderer.invoke('file:readAls', filePath),
     updateMetadata: () => ipcRenderer.invoke('db:updateMetadata'),
-    updateProjectStatus: (projectId, status) => ipcRenderer.invoke('db:updateProjectStatus', projectId, status)
+    updateProjectStatus: (projectId, status) => ipcRenderer.invoke('db:updateProjectStatus', projectId, status),
+    getThemePreference: () => ipcRenderer.invoke('config:getThemePreference'),
+    setThemePreference: (theme) => ipcRenderer.invoke('config:setThemePreference', theme)
   }
 );

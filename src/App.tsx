@@ -17,6 +17,8 @@ declare global {
       readAls: (filePath: string) => Promise<any>;
       updateMetadata: () => Promise<void>;
       updateProjectStatus: (projectId: number, status: string) => Promise<void>;
+      getThemePreference: () => Promise<string>;
+      setThemePreference: (theme: string) => Promise<void>;
     };
   }
 }
@@ -31,6 +33,34 @@ function App() {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [sortColumn, setSortColumn] = useState<string | null>('creationDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>('desc');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark'); // Default to dark
+
+  // Load theme preference on mount
+  useEffect(() => {
+    const loadTheme = async () => {
+      const savedTheme = await window.electronAPI.getThemePreference();
+      if (savedTheme) {
+        setTheme(savedTheme as 'light' | 'dark');
+        document.body.classList.add(savedTheme + '-mode');
+      } else {
+        // If no theme saved, default to dark and save it
+        document.body.classList.add('dark-mode');
+        window.electronAPI.setThemePreference('dark');
+      }
+    };
+    loadTheme();
+  }, []);
+
+  // Save theme preference when theme changes
+  useEffect(() => {
+    document.body.classList.remove('light-mode', 'dark-mode');
+    document.body.classList.add(theme + '-mode');
+    window.electronAPI.setThemePreference(theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
+  };
 
   const fetchProjectsAndTags = async () => {
     const storedProjects = await window.electronAPI.getProjects();
@@ -234,6 +264,9 @@ function App() {
       <div className="app-header">
         <h1 className="app-title">MGMT</h1>
         <div className="header-actions">
+          <button className="btn btn-outline" onClick={toggleTheme}>
+            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
           <button className="btn btn-outline" onClick={handleRefresh}>Refresh</button>
           <button className="btn btn-secondary" onClick={handleOpenRootDirectory}>
             Select Root Directory

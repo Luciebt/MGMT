@@ -27,6 +27,8 @@ export class IPCHandlers {
         // Configuration
         ipcMain.handle('config:get', this.handleGetConfig.bind(this));
         ipcMain.handle('config:update', this.handleUpdateConfig.bind(this));
+        ipcMain.handle('config:getThemePreference', this.handleGetThemePreference.bind(this));
+        ipcMain.handle('config:setThemePreference', this.handleSetThemePreference.bind(this));
     }
 
     async handleOpenRootDirectory() {
@@ -153,6 +155,25 @@ export class IPCHandlers {
             return { success: true };
         } catch (error) {
             console.error('Error in handleUpdateConfig:', error);
+            throw error;
+        }
+    }
+
+    async handleGetThemePreference() {
+        try {
+            return this.projectDiscovery.config.getThemePreference();
+        } catch (error) {
+            console.error('Error in handleGetThemePreference:', error);
+            throw error;
+        }
+    }
+
+    async handleSetThemePreference(event, theme) {
+        try {
+            await this.projectDiscovery.config.setThemePreference(theme);
+            return { success: true };
+        } catch (error) {
+            console.error('Error in handleSetThemePreference:', error);
             throw error;
         }
     }
