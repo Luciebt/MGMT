@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import './styles/index.css';
 import { ProjectTable } from './components/ProjectTable';
 import { ProjectFilters } from './components/ProjectFilters';
@@ -265,16 +265,17 @@ function App() {
     fetchProjectsAndTags();
   };
 
-  const sortedProjects = [...projects].sort((a, b) => {
-    if (!sortColumn) return 0;
-
-    const aValue = a[sortColumn];
-    const bValue = b[sortColumn];
-
-    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-    return 0;
-  });
+  // Memoize sortedProjects to avoid unnecessary recalculations
+  const sortedProjects = useMemo(() => {
+    return [...projects].sort((a, b) => {
+      if (!sortColumn) return 0;
+      const aValue = a[sortColumn];
+      const bValue = b[sortColumn];
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [projects, sortColumn, sortDirection]);
 
   useEffect(() => {
     handleFilterProjects();
