@@ -90,12 +90,9 @@ function App() {
   const [projects, setProjects] = useState<any[]>([]);
   const [parsedData, setParsedData] = useState<any>(null);
   const [allTags, setAllTags] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [sortColumn, setSortColumn] = useState<string | null>('creationDate');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>('desc');
-  // Remove theme state and handlers from App, use context instead
+  // Group filter and sort state into objects with explicit types
+  const [filters, setFilters] = useState<{ searchTerm: string; selectedTags: string[]; selectedStatuses: string[] }>({ searchTerm: '', selectedTags: [], selectedStatuses: [] });
+  const [sort, setSort] = useState<{ column: string; direction: 'asc' | 'desc' }>({ column: 'creationDate', direction: 'desc' });
   const { theme, toggleTheme } = useTheme();
 
   const fetchProjectsAndTags = async () => {
@@ -232,30 +229,31 @@ function App() {
     fetchProjectsAndTags(); // Re-fetch projects to update UI
   };
 
+  // Update handlers to use filters and sort state
   const handleTagFilterChange = useCallback((tagName: string) => {
-    setSelectedTags((prevSelectedTags) =>
-      prevSelectedTags.includes(tagName)
-        ? prevSelectedTags.filter((tag) => tag !== tagName)
-        : [...prevSelectedTags, tagName]
-    );
+    setFilters((prev) => {
+      const selectedTags = prev.selectedTags.includes(tagName)
+        ? prev.selectedTags.filter((tag) => tag !== tagName)
+        : [...prev.selectedTags, tagName];
+      return { ...prev, selectedTags };
+    });
   }, []);
 
   const handleStatusFilterChange = useCallback((statusName: string) => {
-    setSelectedStatuses((prevSelectedStatuses) =>
-      prevSelectedStatuses.includes(statusName)
-        ? prevSelectedStatuses.filter((status) => status !== statusName)
-        : [...prevSelectedStatuses, statusName]
-    );
+    setFilters((prev) => {
+      const selectedStatuses = prev.selectedStatuses.includes(statusName)
+        ? prev.selectedStatuses.filter((status) => status !== statusName)
+        : [...prev.selectedStatuses, statusName];
+      return { ...prev, selectedStatuses };
+    });
   }, []);
 
   const handleSort = useCallback((column: string) => {
-    setSortColumn((prevSortColumn) => {
-      if (prevSortColumn === column) {
-        setSortDirection((prevSortDirection) => (prevSortDirection === 'asc' ? 'desc' : 'asc'));
-        return prevSortColumn;
+    setSort((prevSort) => {
+      if (prevSort.column === column) {
+        return { ...prevSort, direction: prevSort.direction === 'asc' ? 'desc' : 'asc' };
       } else {
-        setSortDirection('asc');
-        return column;
+        return { column, direction: 'asc' };
       }
     });
   }, []);
@@ -270,56 +268,53 @@ function App() {
   const memoizedHandleUpdateProjectNotes = useCallback(handleUpdateProjectNotes, [projects]);
   const memoizedHandleUpdateProjectStatus = useCallback(handleUpdateProjectStatus, [projects]);
 
-  const onFilterChange = useCallback((filter: { projectName?: string; tagNames?: string[]; statusNames?: string[] }) => {
-    const { projectName, tagNames, statusNames } = filter;
-    if (projectName !== undefined) setSearchTerm(projectName || '');
-    if (tagNames !== undefined) setSelectedTags(tagNames);
-    if (statusNames !== undefined) setSelectedStatuses(statusNames);
+  const onFilterChange = useCallback((filter: { searchTerm?: string; tagNames?: string[]; statusNames?: string[] }) => {
+    setFilters((prev) => ({
+      searchTerm: filter.searchTerm !== undefined ? filter.searchTerm : prev.searchTerm,
+      selectedTags: filter.tagNames !== undefined ? filter.tagNames : prev.selectedTags,
+      selectedStatuses: filter.statusNames !== undefined ? filter.statusNames : prev.selectedStatuses,
+    }));
   }, []);
 
-  // Derive filteredProjects from projects and filters using useMemo
+  // Update filteredProjects and sortedProjects to use filters and sort
   const filteredProjects = useMemo(() => {
     let filtered = [...projects];
-    const hasSearchTerm = searchTerm.trim() !== '';
-    const hasTagFilters = selectedTags.length > 0;
-    const hasStatusFilters = selectedStatuses.length > 0;
-    // Filter by search term (case-insensitive search in project name and tags)
+    const hasSearchTerm = filters.searchTerm.trim() !== '';
+    const hasTagFilters = filters.selectedTags.length > 0;
+    const hasStatusFilters = filters.selectedStatuses.length > 0;
     if (hasSearchTerm) {
-      const searchLower = searchTerm.toLowerCase();
+      const searchLower = filters.searchTerm.toLowerCase();
       filtered = filtered.filter((project) => {
         const nameMatch = project.projectName?.toLowerCase().includes(searchLower);
         const tagMatch = project.tags?.some((tag: any) => tag.name?.toLowerCase().includes(searchLower));
         return nameMatch || tagMatch;
       });
     }
-    // Filter by selected tags
     if (hasTagFilters) {
       filtered = filtered.filter((project) =>
-        selectedTags.every((selectedTag) =>
+        filters.selectedTags.every((selectedTag) =>
           project.tags?.some((tag: any) => tag.name === selectedTag)
         )
       );
     }
-    // Filter by selected statuses
     if (hasStatusFilters) {
       filtered = filtered.filter((project) =>
-        selectedStatuses.includes(project.status || 'None')
+        filters.selectedStatuses.includes(project.status || 'None')
       );
     }
     return filtered;
-  }, [projects, searchTerm, selectedTags, selectedStatuses]);
+  }, [projects, filters]);
 
-  // Memoize sortedProjects to avoid unnecessary recalculations
   const sortedProjects = useMemo(() => {
     return [...filteredProjects].sort((a, b) => {
-      if (!sortColumn) return 0;
-      const aValue = a[sortColumn];
-      const bValue = b[sortColumn];
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      if (!sort.column) return 0;
+      const aValue = a[sort.column];
+      const bValue = b[sort.column];
+      if (aValue < bValue) return sort.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sort.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [filteredProjects, sortColumn, sortDirection]);
+  }, [filteredProjects, sort]);
 
   return (
     <div className="app-container">
@@ -348,14 +343,14 @@ function App() {
       )}
 
       <ProjectFilters
-        filter={{ projectName: searchTerm, tagNames: selectedTags, statusNames: selectedStatuses }}
+        filter={{ projectName: filters.searchTerm, tagNames: filters.selectedTags, statusNames: filters.selectedStatuses }}
         onFilterChange={onFilterChange}
         tags={allTags}
-        selectedTags={selectedTags}
+        selectedTags={filters.selectedTags}
         onTagSelectionChange={handleTagFilterChange}
         onAddTag={memoizedHandleAddTag}
         onDeleteTag={memoizedHandleDeleteTag}
-        selectedStatuses={selectedStatuses}
+        selectedStatuses={filters.selectedStatuses}
         onStatusSelectionChange={handleStatusFilterChange}
       />
 
@@ -367,8 +362,8 @@ function App() {
               projects={sortedProjects}
               allTags={allTags}
               onSort={handleSort}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
+              sortColumn={sort.column}
+              sortDirection={sort.direction}
               onUpdateProjectTags={memoizedHandleUpdateProjectTags}
               onUpdateProjectNotes={memoizedHandleUpdateProjectNotes}
               onUpdateProjectStatus={memoizedHandleUpdateProjectStatus}
