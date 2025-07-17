@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import './styles/index.css';
 import { ProjectTable } from './components/ProjectTable';
 import { ProjectFilters } from './components/ProjectFilters';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -16,6 +17,7 @@ declare global {
       filterProjects: (filters: any) => Promise<any[]>;
       readAls: (filePath: string) => Promise<any>;
       updateMetadata: () => Promise<void>;
+      updateProjectNotes: (projectId: number, notes: string) => Promise<void>;
       updateProjectStatus: (projectId: number, status: string) => Promise<void>;
       getThemePreference: () => Promise<string>;
       setThemePreference: (theme: string) => Promise<void>;
@@ -33,37 +35,12 @@ function App() {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [sortColumn, setSortColumn] = useState<string | null>('creationDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>('desc');
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark'); // Default to dark
-
-  // Load theme preference on mount
-  useEffect(() => {
-    const loadTheme = async () => {
-      const savedTheme = await window.electronAPI.getThemePreference();
-      if (savedTheme) {
-        setTheme(savedTheme as 'light' | 'dark');
-        document.body.classList.add(savedTheme + '-mode');
-      } else {
-        // If no theme saved, default to dark and save it
-        document.body.classList.add('dark-mode');
-        window.electronAPI.setThemePreference('dark');
-      }
-    };
-    loadTheme();
-  }, []);
-
-  // Save theme preference when theme changes
-  useEffect(() => {
-    document.body.classList.remove('light-mode', 'dark-mode');
-    document.body.classList.add(theme + '-mode');
-    window.electronAPI.setThemePreference(theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
-  };
+  const [theme, setTheme] = useState<string>('light');
 
   const fetchProjectsAndTags = async () => {
+    console.log('App.tsx: fetchProjectsAndTags called');
     const storedProjects = await window.electronAPI.getProjects();
+    console.log('App.tsx: Stored projects from DB:', storedProjects);
 
     const projectsWithTags = await Promise.all(
       storedProjects.map(async (project: any) => {
@@ -71,6 +48,7 @@ function App() {
         return { ...project, tags: projectTags };
       })
     );
+    console.log('App.tsx: Projects with tags:', projectsWithTags);
     
     // Extract only tags that are actually used by projects
     const usedTags = new Map();
@@ -94,7 +72,37 @@ function App() {
 
   useEffect(() => {
     fetchProjectsAndTags();
+    initializeTheme();
   }, []);
+
+  const initializeTheme = async () => {
+    try {
+      const savedTheme = await window.electronAPI.getThemePreference();
+      setTheme(savedTheme);
+      applyTheme(savedTheme);
+    } catch (error) {
+      console.error('Failed to load theme preference:', error);
+    }
+  };
+
+  const applyTheme = (themeName: string) => {
+    if (themeName === 'dark') {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  };
+
+  const handleThemeToggle = async () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    try {
+      await window.electronAPI.setThemePreference(newTheme);
+      setTheme(newTheme);
+      applyTheme(newTheme);
+    } catch (error) {
+      console.error('Failed to save theme preference:', error);
+    }
+  };
 
   const handleOpenRootDirectory = async () => {
     const result = await window.electronAPI.openRootDirectory();
@@ -150,6 +158,11 @@ function App() {
     // Note: fetchProjectsAndTags is called in the individual functions above
   };
 
+  const handleUpdateProjectNotes = async (projectId: number, notes: string) => {
+    await window.electronAPI.updateProjectNotes(projectId, notes);
+    fetchProjectsAndTags(); // Re-fetch projects to update UI
+  };
+
   const handleUpdateProjectStatus = async (projectId: number, status: string) => {
     await window.electronAPI.updateProjectStatus(projectId, status);
     fetchProjectsAndTags(); // Re-fetch projects to update UI
@@ -173,6 +186,7 @@ function App() {
 
     // If no filters are active, show all projects
     if (!hasAnyFilters) {
+      console.log('App.tsx: No filters active, showing all projects:', projectsWithTags);
       setProjects(projectsWithTags);
       return;
     }
@@ -208,10 +222,11 @@ function App() {
     // Filter by selected statuses
     if (hasStatusFilters) {
       filtered = filtered.filter((project) =>
-        selectedStatuses.includes(project.status || 'None'        )
+        selectedStatuses.includes(project.status || 'None')
       );
     }
 
+    console.log('App.tsx: Filtered projects with tags:', filtered);
     setProjects(filtered);
   };
 
@@ -264,8 +279,12 @@ function App() {
       <div className="app-header">
         <h1 className="app-title">MGMT</h1>
         <div className="header-actions">
-          <button className="btn btn-outline" onClick={toggleTheme}>
-            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          <button 
+            className="btn btn-outline" 
+            onClick={handleThemeToggle}
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
           </button>
           <button className="btn btn-outline" onClick={handleRefresh}>Refresh</button>
           <button className="btn btn-secondary" onClick={handleOpenRootDirectory}>
@@ -307,6 +326,7 @@ function App() {
               sortColumn={sortColumn}
               sortDirection={sortDirection}
               onUpdateProjectTags={handleUpdateProjectTags}
+              onUpdateProjectNotes={handleUpdateProjectNotes}
               onUpdateProjectStatus={handleUpdateProjectStatus}
             />
           </div>

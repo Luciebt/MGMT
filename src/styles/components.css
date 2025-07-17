@@ -63,3 +63,102 @@
 /* Removed unused loading states - they are not used in the codebase */
 
 /* Removed unused alert and progress components - they are not used in the codebase */
+
+/* Editable Note Component */
+.editable-note-container {
+  position: relative;
+  min-height: 2.5rem; /* Ensure consistent height */
+}
+
+.note-display {
+  padding: var(--spacing-2);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.5rem;
+}
+
+.note-display:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.note-display p {
+  margin: 0;
+  flex-grow: 1;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-display .placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.note-display .edit-icon {
+  margin-left: var(--spacing-2);
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.note-display:hover .edit-icon {
+  opacity: 1;
+}
+
+.note-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.note-editor textarea {
+  width: 100%;
+  padding: var(--spacing-2);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  resize: vertical;
+  min-height: 60px;
+}
+
+.note-editor textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+}
+
+.note-actions {
+  display: flex;
+  gap: var(--spacing-2);
+  justify-content: flex-end;
+}
+
+.note-actions .btn {
+  padding: var(--spacing-1_5) var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
+.note-actions .btn-primary {
+  background-color: var(--primary-color);
+  color: var(--text-inverse);
+}
+
+.note-actions .btn-outline {
+  background-color: transparent;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.note-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

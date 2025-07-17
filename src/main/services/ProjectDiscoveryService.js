@@ -2,9 +2,10 @@ import fs from 'fs';
 import path from 'path';
 
 class ProjectDiscoveryService {
-    constructor(extractor, database) {
+    constructor(extractor, database, config) {
         this.extractor = extractor;
         this.database = database;
+        this.config = config;
     }
 
     async discoverProjects(rootPath, options = {}) {
@@ -125,6 +126,8 @@ class ProjectDiscoveryService {
                 creationDate: stats.birthtime.toISOString(),
                 lastModified: stats.mtime.toISOString(),
                 fileSize: stats.size,
+                notes: null, // Initialize notes
+                status: null, // Initialize status
                 ...metadata
             };
 
@@ -141,37 +144,7 @@ class ProjectDiscoveryService {
         }
     }
 
-    async updateProjectMetadata(projectId) {
-        try {
-            const project = this.database.getProjectById(projectId);
-            if (!project) {
-                throw new Error(`Project with ID ${projectId} not found`);
-            }
 
-            const metadata = await this.extractor.extractProjectMetadata(project.alsFilePath);
-            this.database.updateProjectMetadata(projectId, metadata.bpm, metadata.key);
-
-            return { ...project, ...metadata };
-        } catch (error) {
-            console.error(`Failed to update metadata for project ${projectId}:`, error);
-            throw error;
-        }
-    }
-
-    async updateAllProjectsMetadata() {
-        console.log('Updating metadata for all projects...');
-
-        const projects = this.database.getProjectsNeedingMetadata();
-        console.log(`Found ${projects.length} projects needing metadata update`);
-
-        const results = await this.processProjectsBatch(
-            projects.map(p => ({ alsFilePath: p.alsFilePath, projectName: p.projectName })),
-            true
-        );
-
-        console.log('Finished updating project metadata');
-        return results;
-    }
 
     isBackupDirectory(dirName) {
         const backupPatterns = [

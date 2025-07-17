@@ -52,6 +52,22 @@ class AbletonProjectExtractor {
         }
     }
 
+    async readALSFile(alsFilePath) {
+        try {
+            console.log(`Reading ALS file: ${alsFilePath}...`);
+
+            const fileBuffer = await fs.promises.readFile(alsFilePath);
+            const decompressedData = zlib.gunzipSync(fileBuffer).toString('utf-8');
+            const parsedData = await parseStringPromise(decompressedData);
+
+            console.log(`Successfully parsed ALS file: ${path.basename(alsFilePath)}`);
+            return parsedData;
+        } catch (error) {
+            console.error(`Failed to read ALS file ${alsFilePath}:`, error);
+            throw error;
+        }
+    }
+
     extractVersion(parsedData) {
         try {
             return parsedData.Ableton?.$?.MinorVersion ||

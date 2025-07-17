@@ -18,11 +18,11 @@ class ProjectDatabase {
         projectPath TEXT NOT NULL UNIQUE,
         alsFilePath TEXT NOT NULL,
         creationDate TEXT,
-        bpm REAL,
-        key TEXT,
         lastModified TEXT,
         fileSize INTEGER,
-        version TEXT
+        version TEXT,
+        notes TEXT,
+        status TEXT
       )
     `);
 
@@ -58,12 +58,8 @@ class ProjectDatabase {
 
     runMigrations() {
         const migrations = [
-            'ALTER TABLE projects ADD COLUMN bpm REAL',
-            'ALTER TABLE projects ADD COLUMN key TEXT',
-            'ALTER TABLE projects ADD COLUMN creationDate TEXT',
-            'ALTER TABLE projects ADD COLUMN lastModified TEXT',
-            'ALTER TABLE projects ADD COLUMN fileSize INTEGER',
-            'ALTER TABLE projects ADD COLUMN version TEXT',
+            'ALTER TABLE projects ADD COLUMN notes TEXT',
+            'ALTER TABLE projects ADD COLUMN status TEXT',
             'ALTER TABLE tags ADD COLUMN color TEXT DEFAULT "#007acc"',
             'ALTER TABLE tags ADD COLUMN createdAt TEXT DEFAULT CURRENT_TIMESTAMP'
         ];
@@ -81,7 +77,7 @@ class ProjectDatabase {
     insertProject(project) {
         const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO projects 
-      (projectName, projectPath, alsFilePath, creationDate, bpm, key, lastModified, fileSize, version) 
+      (projectName, projectPath, alsFilePath, creationDate, lastModified, fileSize, version, notes, status) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
         return stmt.run(
@@ -89,25 +85,26 @@ class ProjectDatabase {
             project.projectPath,
             project.alsFilePath,
             project.creationDate,
-            project.bpm,
-            project.key,
             project.lastModified,
             project.fileSize,
-            project.version
+            project.version,
+            project.notes,
+            project.status
         );
     }
 
-    getAllProjects() {
+    getProjects() {
         return this.db.prepare('SELECT * FROM projects ORDER BY projectName').all();
     }
 
-    updateProjectMetadata(id, bpm, key) {
-        const stmt = this.db.prepare('UPDATE projects SET bpm = ?, key = ? WHERE id = ?');
-        return stmt.run(bpm, key, id);
+    updateProjectNotes(id, notes) {
+        const stmt = this.db.prepare('UPDATE projects SET notes = ? WHERE id = ?');
+        return stmt.run(notes, id);
     }
 
-    getProjectsNeedingMetadata() {
-        return this.db.prepare('SELECT * FROM projects WHERE bpm IS NULL OR key IS NULL').all();
+    updateProjectStatus(id, status) {
+        const stmt = this.db.prepare('UPDATE projects SET status = ? WHERE id = ?');
+        return stmt.run(status, id);
     }
 
     // Tag operations
@@ -127,6 +124,11 @@ class ProjectDatabase {
         return stmt.run(projectId, tagId);
     }
 
+    removeProjectTag(projectId, tagId) {
+        const stmt = this.db.prepare('DELETE FROM project_tags WHERE project_id = ? AND tag_id = ?');
+        return stmt.run(projectId, tagId);
+    }
+
     getProjectTags(projectId) {
         return this.db.prepare(`
       SELECT t.id, t.name, t.color 
@@ -137,7 +139,7 @@ class ProjectDatabase {
     }
 
     // Advanced filtering
-    filterProjects({ projectName, tagNames, bpmRange, key, dateRange }) {
+    filterProjects({ projectName, tagNames, dateRange, status }) {
         let query = 'SELECT DISTINCT p.* FROM projects p';
         const params = [];
         const conditions = [];
@@ -153,19 +155,14 @@ class ProjectDatabase {
             params.push(`%${projectName}%`);
         }
 
-        if (bpmRange) {
-            conditions.push('p.bpm BETWEEN ? AND ?');
-            params.push(bpmRange.min, bpmRange.max);
-        }
-
-        if (key) {
-            conditions.push('p.key = ?');
-            params.push(key);
-        }
-
         if (dateRange) {
             conditions.push('p.creationDate BETWEEN ? AND ?');
             params.push(dateRange.start, dateRange.end);
+        }
+
+        if (status) {
+            conditions.push('p.status = ?');
+            params.push(status);
         }
 
         if (conditions.length > 0) {

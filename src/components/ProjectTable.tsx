@@ -1,6 +1,7 @@
 import React from 'react';
 import { InteractiveTags } from './InteractiveTags';
 import { StatusDropdown } from './StatusDropdown';
+import { EditableNote } from './EditableNote';
 
 interface Project {
   id: number;
@@ -10,6 +11,7 @@ interface Project {
   creationDate: string;
   status?: string;
   tags?: Array<{ id: number; name: string }>;
+  notes?: string;
 }
 
 interface ProjectTableProps {
@@ -20,6 +22,7 @@ interface ProjectTableProps {
   sortDirection: 'asc' | 'desc' | null;
   onUpdateProjectTags: (projectId: number, newTags: string[]) => Promise<void>;
   onUpdateProjectStatus: (projectId: number, status: string) => Promise<void>;
+  onUpdateProjectNotes: (projectId: number, notes: string) => Promise<void>;
 }
 
 export const ProjectTable: React.FC<ProjectTableProps> = ({
@@ -29,7 +32,8 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
   sortColumn,
   sortDirection,
   onUpdateProjectTags,
-  onUpdateProjectStatus
+  onUpdateProjectStatus,
+  onUpdateProjectNotes
 }) => {
   const renderSortIcon = (column: string) => {
     if (sortColumn === column) {
@@ -57,6 +61,7 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
               Status{renderSortIcon('status')}
             </th>
             <th>Tags</th>
+            <th>Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -84,6 +89,12 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
                   allTags={allTags.map(tag => tag.name)}
                   onTagsChange={(newTags) => handleTagsChange(project.id, newTags)}
                   maxTags={10}
+                />
+              </td>
+              <td className="notes-cell">
+                <EditableNote
+                  note={project.notes || ''}
+                  onSave={(newNote) => onUpdateProjectNotes(project.id, newNote)}
                 />
               </td>
             </tr>

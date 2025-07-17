@@ -76,10 +76,6 @@
   white-space: nowrap;
 }
 
-.project-name[title]:hover {
-  cursor: help;
-}
-
 .bpm-cell,
 .key-cell {
   text-align: center;
@@ -93,10 +89,6 @@
   font-size: var(--font-size-sm);
   white-space: nowrap;
   min-width: 140px;
-}
-
-.creation-date-cell span {
-  cursor: help;
 }
 
 .tags-cell {

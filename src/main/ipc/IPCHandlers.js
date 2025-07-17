@@ -11,10 +11,13 @@ export class IPCHandlers {
         ipcMain.handle('dialog:openRootDirectory', this.handleOpenRootDirectory.bind(this));
         ipcMain.handle('db:getProjects', this.handleGetProjects.bind(this));
         ipcMain.handle('db:updateMetadata', this.handleUpdateMetadata.bind(this));
+        ipcMain.handle('db:updateProjectNotes', this.handleUpdateProjectNotes.bind(this));
+        ipcMain.handle('db:updateProjectStatus', this.handleUpdateProjectStatus.bind(this));
 
         // Tag management
         ipcMain.handle('db:addTag', this.handleAddTag.bind(this));
         ipcMain.handle('db:addProjectTag', this.handleAddProjectTag.bind(this));
+        ipcMain.handle('db:removeProjectTag', this.handleRemoveProjectTag.bind(this));
         ipcMain.handle('db:getTags', this.handleGetTags.bind(this));
         ipcMain.handle('db:getProjectTags', this.handleGetProjectTags.bind(this));
 
@@ -91,6 +94,15 @@ export class IPCHandlers {
             this.database.addProjectTag(projectId, tagId);
         } catch (error) {
             console.error('Error in handleAddProjectTag:', error);
+            throw error;
+        }
+    }
+
+    async handleRemoveProjectTag(event, projectId, tagId) {
+        try {
+            this.database.removeProjectTag(projectId, tagId);
+        } catch (error) {
+            console.error('Error in handleRemoveProjectTag:', error);
             throw error;
         }
     }
@@ -174,6 +186,26 @@ export class IPCHandlers {
             return { success: true };
         } catch (error) {
             console.error('Error in handleSetThemePreference:', error);
+            throw error;
+        }
+    }
+
+    async handleUpdateProjectNotes(event, projectId, notes) {
+        try {
+            this.database.updateProjectNotes(projectId, notes);
+            return { success: true };
+        } catch (error) {
+            console.error('Error in handleUpdateProjectNotes:', error);
+            throw error;
+        }
+    }
+
+    async handleUpdateProjectStatus(event, projectId, status) {
+        try {
+            this.database.updateProjectStatus(projectId, status);
+            return { success: true };
+        } catch (error) {
+            console.error('Error in handleUpdateProjectStatus:', error);
             throw error;
         }
     }
