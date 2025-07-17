@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import './styles/index.css';
 import { ProjectTable } from './components/ProjectTable';
 import { ProjectFilters } from './components/ProjectFilters';
@@ -277,34 +277,52 @@ function App() {
     setProjects(filtered);
   };
 
-  const handleTagFilterChange = (tagName: string) => {
+  const handleTagFilterChange = useCallback((tagName: string) => {
     setSelectedTags((prevSelectedTags) =>
       prevSelectedTags.includes(tagName)
         ? prevSelectedTags.filter((tag) => tag !== tagName)
         : [...prevSelectedTags, tagName]
     );
-  };
+  }, []);
 
-  const handleStatusFilterChange = (statusName: string) => {
+  const handleStatusFilterChange = useCallback((statusName: string) => {
     setSelectedStatuses((prevSelectedStatuses) =>
       prevSelectedStatuses.includes(statusName)
         ? prevSelectedStatuses.filter((status) => status !== statusName)
         : [...prevSelectedStatuses, statusName]
     );
-  };
+  }, []);
 
-  const handleSort = (column: string) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(column);
-      setSortDirection('asc');
-    }
-  };
+  const handleSort = useCallback((column: string) => {
+    setSortColumn((prevSortColumn) => {
+      if (prevSortColumn === column) {
+        setSortDirection((prevSortDirection) => (prevSortDirection === 'asc' ? 'desc' : 'asc'));
+        return prevSortColumn;
+      } else {
+        setSortDirection('asc');
+        return column;
+      }
+    });
+  }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     fetchProjectsAndTags();
-  };
+  }, []);
+
+  const memoizedHandleAddTag = useCallback(handleAddTag, [allTags]);
+  const memoizedHandleDeleteTag = useCallback(handleDeleteTag, [allTags, projects]);
+  const memoizedHandleAddProjectTag = useCallback(handleAddProjectTag, [projects, allTags]);
+  const memoizedHandleRemoveProjectTag = useCallback(handleRemoveProjectTag, [projects, allTags]);
+  const memoizedHandleUpdateProjectTags = useCallback(handleUpdateProjectTags, [projects, allTags]);
+  const memoizedHandleUpdateProjectNotes = useCallback(handleUpdateProjectNotes, [projects]);
+  const memoizedHandleUpdateProjectStatus = useCallback(handleUpdateProjectStatus, [projects]);
+
+  const onFilterChange = useCallback((filter: { projectName?: string; tagNames?: string[]; statusNames?: string[] }) => {
+    const { projectName, tagNames, statusNames } = filter;
+    if (projectName !== undefined) setSearchTerm(projectName || '');
+    if (tagNames !== undefined) setSelectedTags(tagNames);
+    if (statusNames !== undefined) setSelectedStatuses(statusNames);
+  }, []);
 
   // Memoize sortedProjects to avoid unnecessary recalculations
   const sortedProjects = useMemo(() => {
@@ -350,16 +368,12 @@ function App() {
 
       <ProjectFilters
         filter={{ projectName: searchTerm, tagNames: selectedTags, statusNames: selectedStatuses }}
-        onFilterChange={({ projectName, tagNames, statusNames }) => {
-          if (projectName !== undefined) setSearchTerm(projectName || '');
-          if (tagNames !== undefined) setSelectedTags(tagNames);
-          if (statusNames !== undefined) setSelectedStatuses(statusNames);
-        }}
+        onFilterChange={onFilterChange}
         tags={allTags}
         selectedTags={selectedTags}
         onTagSelectionChange={handleTagFilterChange}
-        onAddTag={handleAddTag}
-        onDeleteTag={handleDeleteTag}
+        onAddTag={memoizedHandleAddTag}
+        onDeleteTag={memoizedHandleDeleteTag}
         selectedStatuses={selectedStatuses}
         onStatusSelectionChange={handleStatusFilterChange}
       />
@@ -374,9 +388,9 @@ function App() {
               onSort={handleSort}
               sortColumn={sortColumn}
               sortDirection={sortDirection}
-              onUpdateProjectTags={handleUpdateProjectTags}
-              onUpdateProjectNotes={handleUpdateProjectNotes}
-              onUpdateProjectStatus={handleUpdateProjectStatus}
+              onUpdateProjectTags={memoizedHandleUpdateProjectTags}
+              onUpdateProjectNotes={memoizedHandleUpdateProjectNotes}
+              onUpdateProjectStatus={memoizedHandleUpdateProjectStatus}
             />
           </div>
         </ErrorBoundary>
