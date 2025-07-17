@@ -112,6 +112,17 @@ function App() {
     }
   };
 
+  const handleDeleteTag = async (tagId: number) => {
+    try {
+      // @ts-ignore - temporary fix for missing type declaration
+      await window.electronAPI.deleteTag(tagId);
+      fetchProjectsAndTags(); // Re-fetch all tags and projects to update UI
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      throw error;
+    }
+  };
+
   const handleAddProjectTag = async (projectId: number, tagName: string) => {
     if (tagName.trim() !== '') {
       console.log('App.tsx: Adding project tag - projectId:', projectId, 'tagName:', tagName);
@@ -306,6 +317,7 @@ function App() {
         selectedTags={selectedTags}
         onTagSelectionChange={handleTagFilterChange}
         onAddTag={handleAddTag}
+        onDeleteTag={handleDeleteTag}
         selectedStatuses={selectedStatuses}
         onStatusSelectionChange={handleStatusFilterChange}
       />

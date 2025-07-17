@@ -174,6 +174,25 @@ class ProjectDatabase {
         return stmt.run(projectId, tagId);
     }
 
+    deleteTag(tagId) {
+        try {
+            // First, remove all project associations for this tag
+            const removeAssociationsStmt = this.db.prepare('DELETE FROM project_tags WHERE tag_id = ?');
+            const associationsResult = removeAssociationsStmt.run(tagId);
+            console.log('Database: Removed tag associations:', associationsResult);
+
+            // Then, delete the tag itself
+            const deleteTagStmt = this.db.prepare('DELETE FROM tags WHERE id = ?');
+            const deleteResult = deleteTagStmt.run(tagId);
+            console.log('Database: Deleted tag:', deleteResult);
+
+            return deleteResult;
+        } catch (error) {
+            console.error('Database: Error in deleteTag:', error);
+            throw error;
+        }
+    }
+
     getProjectTags(projectId) {
         return this.db.prepare(`
       SELECT t.id, t.name, t.color 

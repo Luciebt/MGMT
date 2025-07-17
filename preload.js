@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld(
     openRootDirectory: () => ipcRenderer.invoke('dialog:openRootDirectory'),
     getProjects: () => ipcRenderer.invoke('db:getProjects'),
     addTag: (tagName) => ipcRenderer.invoke('db:addTag', tagName),
+    deleteTag: (tagId) => ipcRenderer.invoke('db:deleteTag', tagId),
     addProjectTag: (projectId, tagId) => ipcRenderer.invoke('db:addProjectTag', projectId, tagId),
     removeProjectTag: (projectId, tagId) => ipcRenderer.invoke('db:removeProjectTag', projectId, tagId),
     getTags: () => ipcRenderer.invoke('db:getTags'),

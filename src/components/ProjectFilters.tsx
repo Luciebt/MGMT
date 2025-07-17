@@ -18,8 +18,9 @@ interface ProjectFiltersProps {
   selectedTags: string[];
   onTagSelectionChange: (tagName: string) => void;
   onAddTag: (tagName: string) => Promise<void>;
-  selectedStatuses?: string[];
-  onStatusSelectionChange: (statusName: string) => void;
+  onDeleteTag: (tagId: number) => Promise<void>;
+  selectedStatuses: string[];
+  onStatusSelectionChange: (status: string) => void;
 }
 
 export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
@@ -29,6 +30,7 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
   selectedTags,
   onTagSelectionChange,
   onAddTag,
+  onDeleteTag,
   selectedStatuses = [],
   onStatusSelectionChange
 }) => {
@@ -37,6 +39,11 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [tagSearchTerm, setTagSearchTerm] = useState('');
   const [isAddingTag, setIsAddingTag] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; tagId: number | null; tagName: string }>({ 
+    isOpen: false, 
+    tagId: null, 
+    tagName: '' 
+  });
 
   const STATUS_OPTIONS = ['None', 'Demo', 'Template', 'WIP', 'Mix', 'Mastering', 'Done'];
 
@@ -78,6 +85,26 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
     selectedTags.forEach(tag => onTagSelectionChange(tag));
     selectedStatuses.forEach(status => onStatusSelectionChange(status));
     onFilterChange({});
+  };
+
+  const handleDeleteTag = (tagId: number, tagName: string) => {
+    setDeleteConfirmation({ isOpen: true, tagId, tagName });
+  };
+
+  const confirmDeleteTag = async () => {
+    if (deleteConfirmation.tagId) {
+      try {
+        await onDeleteTag(deleteConfirmation.tagId);
+        setDeleteConfirmation({ isOpen: false, tagId: null, tagName: '' });
+      } catch (error) {
+        console.error('Error deleting tag:', error);
+        // Keep dialog open to allow retry
+      }
+    }
+  };
+
+  const cancelDeleteTag = () => {
+    setDeleteConfirmation({ isOpen: false, tagId: null, tagName: '' });
   };
 
   const filteredTags = tags.filter(tag => 
@@ -192,17 +219,30 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
 
               {/* Existing Tags */}
               {filteredTags.map((tag) => (
-                <label 
+                <div 
                   key={tag.id} 
                   className={`tag-filter-item ${selectedTags.includes(tag.name) ? 'selected' : ''}`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={selectedTags.includes(tag.name)}
-                    onChange={() => onTagSelectionChange(tag.name)}
-                  />
-                  <span className="tag-filter-label">{tag.name}</span>
-                </label>
+                  <label className="tag-filter-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={selectedTags.includes(tag.name)}
+                      onChange={() => onTagSelectionChange(tag.name)}
+                    />
+                    <span className="tag-filter-label">{tag.name}</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="tag-delete-btn"
+                    onClick={() => handleDeleteTag(tag.id, tag.name)}
+                    title={`Delete tag "${tag.name}"`}
+                    aria-label={`Delete tag ${tag.name}`}
+                  >
+                    <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                      <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
 
@@ -239,6 +279,44 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
                   <span className="tag-filter-label">{status}</span>
                 </label>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmation.isOpen && (
+        <div className="modal-overlay" onClick={cancelDeleteTag}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Delete Tag</h3>
+              <button 
+                className="modal-close" 
+                onClick={cancelDeleteTag}
+                aria-label="Close dialog"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20">
+                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>Are you sure you want to delete the tag <strong>"{deleteConfirmation.tagName}"</strong>?</p>
+              <p className="text-muted">This will remove the tag from all projects that currently have it assigned. This action cannot be undone.</p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={cancelDeleteTag}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={confirmDeleteTag}
+              >
+                Delete Tag
+              </button>
             </div>
           </div>
         </div>

@@ -16,6 +16,7 @@ export class IPCHandlers {
 
         // Tag management
         ipcMain.handle('db:addTag', this.handleAddTag.bind(this));
+        ipcMain.handle('db:deleteTag', this.handleDeleteTag.bind(this));
         ipcMain.handle('db:addProjectTag', this.handleAddProjectTag.bind(this));
         ipcMain.handle('db:removeProjectTag', this.handleRemoveProjectTag.bind(this));
         ipcMain.handle('db:getTags', this.handleGetTags.bind(this));
@@ -87,6 +88,18 @@ export class IPCHandlers {
             return tagId;
         } catch (error) {
             console.error('Error in handleAddTag:', error);
+            throw error;
+        }
+    }
+
+    async handleDeleteTag(event, tagId) {
+        try {
+            console.log('Deleting tag with ID:', tagId);
+            const result = this.database.deleteTag(tagId);
+            console.log('Tag deleted successfully:', result);
+            return result;
+        } catch (error) {
+            console.error('Error in handleDeleteTag:', error);
             throw error;
         }
     }

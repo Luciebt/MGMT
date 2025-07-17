@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 export interface ElectronAPI {
   openRootDirectory: () => Promise<{ rootDirectory: string; projects: any[]; } | null>;
   getProjects: () => Promise<any[]>;
