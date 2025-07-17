@@ -340,8 +340,7 @@
 }
 
 .tag-filter-checkbox input[type="checkbox"] {
-  margin: 0;
-  cursor: pointer;
+  display: none;
 }
 
 .tag-filter-label {

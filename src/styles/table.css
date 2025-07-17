@@ -88,11 +88,16 @@
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
   white-space: nowrap;
-  min-width: 140px;
+  min-width: 120px;
 }
 
 .tags-cell {
   min-width: 200px;
+  position: relative;
+}
+
+.notes-cell {
+  min-width: 250px;
   position: relative;
 }
 
@@ -129,22 +134,24 @@
 
 /* Progressive column hiding for optimal mobile UX */
 @media (max-width: 900px) {
-  /* Hide BPM, Key, and Status columns first on medium screens */
-  .project-table th:nth-child(3),
-  .project-table td:nth-child(3),
-  .project-table th:nth-child(4),
-  .project-table td:nth-child(4),
+  /* Hide Creation Date and Notes columns, keep Project Name + Status + Tags */
+  .project-table th:nth-child(2),
+  .project-table td:nth-child(2),
   .project-table th:nth-child(5),
   .project-table td:nth-child(5) {
     display: none;
   }
 
   .project-table {
-    min-width: 500px;
+    min-width: 400px;
+  }
+
+  .status-cell {
+    min-width: 100px;
   }
 
   .tags-cell {
-    min-width: 200px;
+    min-width: 180px;
   }
 }
 
@@ -156,7 +163,7 @@
   }
 
   .project-table {
-    min-width: 450px;
+    min-width: 350px;
     table-layout: auto;
   }
 
@@ -166,64 +173,36 @@
     font-size: var(--font-size-sm);
   }
 
-  /* Sticky tags column for all breakpoints */
-  .project-table th:last-child,
-  .project-table td:last-child {
-    position: sticky;
-    right: 0;
-    background-color: var(--bg-secondary);
-    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
-    z-index: 11;
-  }
-
-  .project-table tbody td:last-child {
-    background-color: var(--bg-primary);
-  }
-
-  .project-table tbody tr:hover td:last-child {
-    background-color: var(--bg-secondary);
-  }
-
-  .project-table tbody tr:nth-child(even) td:last-child {
-    background-color: rgba(225, 229, 238, 0.3);
-  }
-
-  .project-table tbody tr:nth-child(even):hover td:last-child {
-    background-color: var(--bg-secondary);
-  }
-
   .project-name {
     max-width: 150px;
   }
 
-  .creation-date-cell {
-    min-width: 110px;
-    font-size: var(--font-size-xs);
-  }
-
-  .tags-cell {
-    min-width: 180px;
-  }
-}
-
-@media (max-width: 600px) {
-  /* Hide creation date column on very small screens */
-  .project-table th:nth-child(2),
-  .project-table td:nth-child(2) {
-    display: none;
-  }
-
-  .project-table {
-    min-width: 320px;
-  }
-
-  .project-name {
-    max-width: none;
-    min-width: 140px;
+  .status-cell {
+    min-width: 90px;
   }
 
   .tags-cell {
     min-width: 150px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Continue with 3-column layout: Project Name + Status + Tags */
+  .project-table {
+    min-width: 300px;
+  }
+
+  .project-name {
+    max-width: none;
+    min-width: 120px;
+  }
+
+  .status-cell {
+    min-width: 80px;
+  }
+
+  .tags-cell {
+    min-width: 130px;
   }
 }
 
@@ -238,18 +217,16 @@
     font-size: var(--font-size-xs);
   }
 
-  /* Enhanced shadow for smallest screens */
-  .project-table th:last-child,
-  .project-table td:last-child {
-    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
-  }
-
   .project-name {
-    min-width: 120px;
+    min-width: 100px;
     font-size: var(--font-size-xs);
   }
 
+  .status-cell {
+    min-width: 70px;
+  }
+
   .tags-cell {
-    min-width: 130px;
+    min-width: 110px;
   }
 }

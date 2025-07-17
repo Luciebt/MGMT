@@ -450,7 +450,7 @@
 /* Status Filter Specific Styling - More Compact */
 .status-filter-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: var(--spacing-1);
   margin-top: var(--spacing-2);
 }
@@ -460,7 +460,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
-  padding: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-1);
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -469,7 +469,8 @@
   user-select: none;
   will-change: transform, box-shadow, background-color;
   font-size: var(--font-size-xs);
-  min-height: 32px;
+  min-height: 28px;
+  justify-content: center;
 }
 
 .status-filter-item:hover {
@@ -487,21 +488,23 @@
   background-color: var(--accent-color);
   border-color: var(--primary-color);
   color: var(--space-cadet);
+  font-weight: var(--font-weight-semibold);
 }
 
 .status-filter-item input[type="checkbox"] {
-  margin: 0;
-  flex-shrink: 0;
+  display: none;
 }
 
 .status-filter-item .tag-filter-label {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
+  text-align: center;
+  width: 100%;
 }
 
 @media (max-width: 768px) {
   .status-filter-grid {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   }
 }
 
