@@ -215,68 +215,6 @@ function App() {
     fetchProjectsAndTags(); // Re-fetch projects to update UI
   };
 
-  const handleFilterProjects = async () => {
-    // Get all projects first
-    const allProjects = await window.electronAPI.getProjects();
-    const projectsWithTags = await Promise.all(
-      allProjects.map(async (project: any) => {
-        const projectTags = await window.electronAPI.getProjectTags(project.id);
-        return { ...project, tags: projectTags };
-      })
-    );
-
-    // Check if any filters are active
-    const hasSearchTerm = searchTerm.trim() !== '';
-    const hasTagFilters = selectedTags.length > 0;
-    const hasStatusFilters = selectedStatuses.length > 0;
-    const hasAnyFilters = hasSearchTerm || hasTagFilters || hasStatusFilters;
-
-    // If no filters are active, show all projects
-    if (!hasAnyFilters) {
-      console.log('App.tsx: No filters active, showing all projects:', projectsWithTags);
-      setProjects(projectsWithTags);
-      return;
-    }
-
-    // Apply client-side filtering
-    let filtered = projectsWithTags;
-
-    // Filter by search term (case-insensitive search in project name and tags)
-    if (hasSearchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter((project) => {
-        // Check project name
-        const nameMatch = project.projectName?.toLowerCase().includes(searchLower);
-        
-        // Check tags
-        const tagMatch = project.tags?.some((tag: any) => 
-          tag.name?.toLowerCase().includes(searchLower)
-        );
-        
-        return nameMatch || tagMatch;
-      });
-    }
-
-    // Filter by selected tags
-    if (hasTagFilters) {
-      filtered = filtered.filter((project) =>
-        selectedTags.every((selectedTag) =>
-          project.tags?.some((tag: any) => tag.name === selectedTag)
-        )
-      );
-    }
-
-    // Filter by selected statuses
-    if (hasStatusFilters) {
-      filtered = filtered.filter((project) =>
-        selectedStatuses.includes(project.status || 'None')
-      );
-    }
-
-    console.log('App.tsx: Filtered projects with tags:', filtered);
-    setProjects(filtered);
-  };
-
   const handleTagFilterChange = useCallback((tagName: string) => {
     setSelectedTags((prevSelectedTags) =>
       prevSelectedTags.includes(tagName)
@@ -311,8 +249,6 @@ function App() {
 
   const memoizedHandleAddTag = useCallback(handleAddTag, [allTags]);
   const memoizedHandleDeleteTag = useCallback(handleDeleteTag, [allTags, projects]);
-  const memoizedHandleAddProjectTag = useCallback(handleAddProjectTag, [projects, allTags]);
-  const memoizedHandleRemoveProjectTag = useCallback(handleRemoveProjectTag, [projects, allTags]);
   const memoizedHandleUpdateProjectTags = useCallback(handleUpdateProjectTags, [projects, allTags]);
   const memoizedHandleUpdateProjectNotes = useCallback(handleUpdateProjectNotes, [projects]);
   const memoizedHandleUpdateProjectStatus = useCallback(handleUpdateProjectStatus, [projects]);
@@ -324,9 +260,41 @@ function App() {
     if (statusNames !== undefined) setSelectedStatuses(statusNames);
   }, []);
 
+  // Derive filteredProjects from projects and filters using useMemo
+  const filteredProjects = useMemo(() => {
+    let filtered = [...projects];
+    const hasSearchTerm = searchTerm.trim() !== '';
+    const hasTagFilters = selectedTags.length > 0;
+    const hasStatusFilters = selectedStatuses.length > 0;
+    // Filter by search term (case-insensitive search in project name and tags)
+    if (hasSearchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter((project) => {
+        const nameMatch = project.projectName?.toLowerCase().includes(searchLower);
+        const tagMatch = project.tags?.some((tag: any) => tag.name?.toLowerCase().includes(searchLower));
+        return nameMatch || tagMatch;
+      });
+    }
+    // Filter by selected tags
+    if (hasTagFilters) {
+      filtered = filtered.filter((project) =>
+        selectedTags.every((selectedTag) =>
+          project.tags?.some((tag: any) => tag.name === selectedTag)
+        )
+      );
+    }
+    // Filter by selected statuses
+    if (hasStatusFilters) {
+      filtered = filtered.filter((project) =>
+        selectedStatuses.includes(project.status || 'None')
+      );
+    }
+    return filtered;
+  }, [projects, searchTerm, selectedTags, selectedStatuses]);
+
   // Memoize sortedProjects to avoid unnecessary recalculations
   const sortedProjects = useMemo(() => {
-    return [...projects].sort((a, b) => {
+    return [...filteredProjects].sort((a, b) => {
       if (!sortColumn) return 0;
       const aValue = a[sortColumn];
       const bValue = b[sortColumn];
@@ -334,11 +302,7 @@ function App() {
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [projects, sortColumn, sortDirection]);
-
-  useEffect(() => {
-    handleFilterProjects();
-  }, [searchTerm, selectedTags, selectedStatuses]); // Re-filter when search term, selected tags, or selected statuses change
+  }, [filteredProjects, sortColumn, sortDirection]);
 
   return (
     <div className="app-container">
