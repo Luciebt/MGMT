@@ -75,6 +75,16 @@ function useTheme() {
   return context;
 }
 
+// Utility functions for tag state updates
+function addTagToState(tags: any[], newTag: any) {
+  if (tags.some((t) => t.id === newTag.id || t.name === newTag.name)) return tags;
+  return [...tags, newTag];
+}
+
+function removeTagFromState(tags: any[], tagId: number) {
+  return tags.filter((t) => t.id !== tagId);
+}
+
 function App() {
   const [rootDirectory, setRootDirectory] = useState<string | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
@@ -116,14 +126,7 @@ function App() {
 
   useEffect(() => {
     fetchProjectsAndTags();
-    // initializeTheme(); // This function is no longer needed
   }, []);
-
-  // initializeTheme function is removed as theme is now managed by context
-
-  // applyTheme function is removed as theme is now managed by context
-
-  // handleThemeToggle function is removed as theme is now managed by context
 
   const handleOpenRootDirectory = async () => {
     const result = await window.electronAPI.openRootDirectory();
@@ -136,13 +139,8 @@ function App() {
   const handleAddTag = async (tagName: string) => {
     if (tagName.trim() !== '') {
       const tagId = await window.electronAPI.addTag(tagName.trim());
-      // Only update allTags state
       const newTag = { id: tagId, name: tagName.trim() };
-      setAllTags((prevTags) => {
-        // Avoid duplicates
-        if (prevTags.some((t) => t.id === tagId || t.name === tagName.trim())) return prevTags;
-        return [...prevTags, newTag];
-      });
+      setAllTags((prevTags) => addTagToState(prevTags, newTag));
     }
   };
 
@@ -150,12 +148,11 @@ function App() {
     try {
       // @ts-ignore - temporary fix for missing type declaration
       await window.electronAPI.deleteTag(tagId);
-      // Remove tag from allTags and from all projects
-      setAllTags((prevTags) => prevTags.filter((t) => t.id !== tagId));
+      setAllTags((prevTags) => removeTagFromState(prevTags, tagId));
       setProjects((prevProjects) =>
         prevProjects.map((project) => ({
           ...project,
-          tags: project.tags?.filter((tag: any) => tag.id !== tagId) || [],
+          tags: removeTagFromState(project.tags || [], tagId),
         }))
       );
     } catch (error) {
@@ -168,41 +165,33 @@ function App() {
     if (tagName.trim() !== '') {
       const tagId = await window.electronAPI.addTag(tagName.trim()); // Ensure tag exists and get its ID
       await window.electronAPI.addProjectTag(projectId, tagId);
-      // Update the tags for the specific project in state
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.id === projectId) {
-            // Add tag if not already present
             if (!project.tags.some((tag: any) => tag.id === tagId)) {
               return {
                 ...project,
-                tags: [...project.tags, { id: tagId, name: tagName.trim() }],
+                tags: addTagToState(project.tags, { id: tagId, name: tagName.trim() }),
               };
             }
           }
           return project;
         })
       );
-      // Also update allTags if needed
-      setAllTags((prevTags) => {
-        if (prevTags.some((t) => t.id === tagId || t.name === tagName.trim())) return prevTags;
-        return [...prevTags, { id: tagId, name: tagName.trim() }];
-      });
+      setAllTags((prevTags) => addTagToState(prevTags, { id: tagId, name: tagName.trim() }));
     }
   };
 
   const handleRemoveProjectTag = async (projectId: number, tagName: string) => {
-    // Find the tag ID by name
     const tag = allTags.find(t => t.name === tagName);
     if (tag) {
       await window.electronAPI.removeProjectTag(projectId, tag.id);
-      // Remove tag from the specific project in state
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.id === projectId) {
             return {
               ...project,
-              tags: project.tags?.filter((t: any) => t.id !== tag.id) || [],
+              tags: removeTagFromState(project.tags || [], tag.id),
             };
           }
           return project;
