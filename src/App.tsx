@@ -4,6 +4,17 @@ import { ProjectTable } from './components/ProjectTable';
 import { ProjectFilters } from './components/ProjectFilters';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { addTagToState, removeTagFromState } from './utils/tagUtils';
+import {
+  fetchProjectsAndTags as fetchProjectsAndTagsService,
+  addTag as addTagService,
+  deleteTag as deleteTagService,
+  addProjectTag as addProjectTagService,
+  removeProjectTag as removeProjectTagService,
+  getProjectTags as getProjectTagsService,
+  updateProjectNotes as updateProjectNotesService,
+  updateProjectStatus as updateProjectStatusService,
+  openRootDirectory as openRootDirectoryService
+} from './services/projectService';
 
 declare global {
   interface Window {
@@ -87,21 +98,7 @@ function App() {
 
   const fetchProjectsAndTags = async () => {
     console.log('App.tsx: fetchProjectsAndTags called');
-    const storedProjects = await window.electronAPI.getProjects();
-    console.log('App.tsx: Stored projects from DB:', storedProjects);
-
-    const projectsWithTags = await Promise.all(
-      storedProjects.map(async (project: any) => {
-        const projectTags = await window.electronAPI.getProjectTags(project.id);
-        return { ...project, tags: projectTags };
-      })
-    );
-    console.log('App.tsx: Projects with tags:', projectsWithTags);
-    
-    // Get all available tags from the database (not just used ones)
-    const allAvailableTags = await window.electronAPI.getTags();
-    console.log('App.tsx: All available tags:', allAvailableTags);
-    
+    const { projects: projectsWithTags, tags: allAvailableTags } = await fetchProjectsAndTagsService();
     setProjects(projectsWithTags);
     setAllTags(allAvailableTags);
   };
@@ -111,7 +108,7 @@ function App() {
   }, []);
 
   const handleOpenRootDirectory = async () => {
-    const result = await window.electronAPI.openRootDirectory();
+    const result = await openRootDirectoryService();
     if (result) {
       setRootDirectory(result.rootDirectory);
       fetchProjectsAndTags(); // Re-fetch projects and tags after opening new root directory
@@ -120,7 +117,7 @@ function App() {
 
   const handleAddTag = async (tagName: string) => {
     if (tagName.trim() !== '') {
-      const tagId = await window.electronAPI.addTag(tagName.trim());
+      const tagId = await addTagService(tagName.trim());
       const newTag = { id: tagId, name: tagName.trim() };
       setAllTags((prevTags) => addTagToState(prevTags, newTag));
     }
@@ -128,8 +125,7 @@ function App() {
 
   const handleDeleteTag = async (tagId: number) => {
     try {
-      // @ts-ignore - temporary fix for missing type declaration
-      await window.electronAPI.deleteTag(tagId);
+      await deleteTagService(tagId);
       setAllTags((prevTags) => removeTagFromState(prevTags, tagId));
       setProjects((prevProjects) =>
         prevProjects.map((project) => ({
@@ -145,8 +141,8 @@ function App() {
 
   const handleAddProjectTag = async (projectId: number, tagName: string) => {
     if (tagName.trim() !== '') {
-      const tagId = await window.electronAPI.addTag(tagName.trim()); // Ensure tag exists and get its ID
-      await window.electronAPI.addProjectTag(projectId, tagId);
+      const tagId = await addTagService(tagName.trim()); // Ensure tag exists and get its ID
+      await addProjectTagService(projectId, tagId);
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.id === projectId) {
@@ -167,7 +163,7 @@ function App() {
   const handleRemoveProjectTag = async (projectId: number, tagName: string) => {
     const tag = allTags.find(t => t.name === tagName);
     if (tag) {
-      await window.electronAPI.removeProjectTag(projectId, tag.id);
+      await removeProjectTagService(projectId, tag.id);
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.id === projectId) {
@@ -184,7 +180,7 @@ function App() {
 
   const handleUpdateProjectTags = async (projectId: number, newTags: string[]) => {
     // Get current project tags
-    const currentTags = await window.electronAPI.getProjectTags(projectId);
+    const currentTags = await getProjectTagsService(projectId);
     const currentTagNames = currentTags.map((tag: any) => tag.name);
 
     // Find tags to add and remove
@@ -200,17 +196,15 @@ function App() {
     for (const tagName of tagsToRemove) {
       await handleRemoveProjectTag(projectId, tagName);
     }
-
-    // Note: fetchProjectsAndTags is called in the individual functions above
   };
 
   const handleUpdateProjectNotes = async (projectId: number, notes: string) => {
-    await window.electronAPI.updateProjectNotes(projectId, notes);
+    await updateProjectNotesService(projectId, notes);
     fetchProjectsAndTags(); // Re-fetch projects to update UI
   };
 
   const handleUpdateProjectStatus = async (projectId: number, status: string) => {
-    await window.electronAPI.updateProjectStatus(projectId, status);
+    await updateProjectStatusService(projectId, status);
     fetchProjectsAndTags(); // Re-fetch projects to update UI
   };
 
