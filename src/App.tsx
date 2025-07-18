@@ -3,6 +3,7 @@ import './styles/index.css';
 import { ProjectTable } from './components/ProjectTable';
 import { ProjectFilters } from './components/ProjectFilters';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { addTagToState, removeTagFromState } from './utils/tagUtils';
 
 declare global {
   interface Window {
@@ -73,16 +74,6 @@ function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) throw new Error('useTheme must be used within a ThemeProvider');
   return context;
-}
-
-// Utility functions for tag state updates
-function addTagToState(tags: any[], newTag: any) {
-  if (tags.some((t) => t.id === newTag.id || t.name === newTag.name)) return tags;
-  return [...tags, newTag];
-}
-
-function removeTagFromState(tags: any[], tagId: number) {
-  return tags.filter((t) => t.id !== tagId);
 }
 
 function App() {
