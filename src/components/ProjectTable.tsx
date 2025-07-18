@@ -143,7 +143,7 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
               <td className="creation-date-cell" style={{ width: columnWidths.creationDate, minWidth: minWidths.creationDate }}>
                 {project.creationDate ? (
                   <span title={new Date(project.creationDate).toLocaleString()}>
-                    {new Date(project.creationDate).toLocaleDateString()} {new Date(project.creationDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(project.creationDate).toLocaleDateString()}
                   </span>
                 ) : 'N/A'}
               </td>
