@@ -18,10 +18,8 @@
 
 .project-table th,
 .project-table td {
-  padding: var(--spacing-4);
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-  vertical-align: middle;
+  padding: var(--spacing-2) var(--spacing-1); /* less padding */
+  font-size: var(--font-size-sm); /* smaller font */
 }
 
 .project-table th {
@@ -31,7 +29,7 @@
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs); /* even smaller for headers */
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
@@ -74,6 +72,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding-left: var(--spacing-3);
 }
 
 .bpm-cell,
@@ -150,6 +149,19 @@
     min-width: 400px;
   }
 
+  .project-table th,
+  .project-table td {
+    padding: var(--spacing-1);
+    font-size: var(--font-size-xs);
+  }
+  .project-table th {
+    font-size: 0.7rem;
+  }
+
+  .project-name {
+    max-width: 150px;
+  }
+
   .status-cell {
     min-width: 100px;
   }
@@ -207,6 +219,14 @@
 
   .tags-cell {
     min-width: 130px;
+  }
+  .project-table th,
+  .project-table td {
+    padding: 2px 4px;
+    font-size: 0.65rem;
+  }
+  .project-table th {
+    font-size: 0.6rem;
   }
 }
 
