@@ -1,0 +1,164 @@
+/* Dashboard Styles for Project Profile Page */
+
+.dashboard-card {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow-sm);
+  padding: var(--spacing-3);
+  margin-bottom: 0;
+}
+
+.dashboard-card-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-2);
+}
+
+.dashboard-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-color);
+  color: var(--space-cadet);
+  border-radius: var(--border-radius);
+  padding: 4px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  user-select: none;
+}
+
+.dashboard-status-badge {
+  background: var(--bg-secondary);
+  color: var(--primary-color);
+  border-radius: var(--border-radius);
+  padding: 4px 14px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid var(--border-color);
+  user-select: none;
+}
+
+.dashboard-num-badge {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  border: 1px solid var(--border-color);
+  user-select: none;
+}
+
+.dashboard-dropzone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-4);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  background: var(--bg-secondary);
+  transition: border-color 0.15s;
+}
+
+.dashboard-dropzone:hover {
+  border-color: var(--primary-color);
+}
+
+.dashboard-moodboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-2);
+  min-height: 120px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-3);
+}
+
+.dashboard-moodboard-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  user-select: none;
+}
+
+.dashboard-plugin-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard-plugin-list-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--primary-color);
+  background: none;
+  padding: 0;
+  border: none;
+  margin: 0;
+}
+
+.dashboard-numerical-cards {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  align-items: stretch;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.dashboard-numcard {
+  background: var(--card-bg, #f7f7fa);
+  border-radius: 10px;
+  padding: 10px 14px 6px 14px;
+  min-width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.03);
+}
+
+.dashboard-numcard-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  line-height: 1.1;
+}
+
+.dashboard-numcard-label {
+  font-size: 0.85rem;
+  color: var(--text-muted, #888);
+  font-weight: 400;
+  margin-top: 2px;
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 700px) {
+  .dashboard-numerical-cards {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .dashboard-numcard {
+    min-width: 44px;
+    padding: 8px 8px 4px 8px;
+  }
+  .dashboard-numcard-value {
+    font-size: 1.05rem;
+  }
+  .dashboard-numcard-label {
+    font-size: 0.75rem;
+  }
+}
