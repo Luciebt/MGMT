@@ -25,7 +25,7 @@ interface ProjectTableProps {
   onUpdateProjectNotes: (projectId: number, notes: string) => Promise<void>;
 }
 
-export const ProjectTable: React.FC<ProjectTableProps> = ({
+export const ProjectTable: React.FC<ProjectTableProps & { onProjectClick?: (project: Project) => void }> = ({
   projects,
   allTags,
   onSort,
@@ -33,7 +33,8 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
   sortDirection,
   onUpdateProjectTags,
   onUpdateProjectStatus,
-  onUpdateProjectNotes
+  onUpdateProjectNotes,
+  onProjectClick
 }) => {
   const columns = [
     { key: 'projectName', label: 'Project Name' },
@@ -139,7 +140,26 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
         <tbody>
           {projects.map((project) => (
             <tr key={project.id}>
-              <td className="project-name" style={{ width: columnWidths.projectName, minWidth: minWidths.projectName }}>{project.projectName}</td>
+              <td
+                className="project-name"
+                style={{ width: columnWidths.projectName, minWidth: minWidths.projectName }}
+              >
+                <span
+                  className="project-name-link"
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`View profile for ${project.projectName}`}
+                  onClick={() => onProjectClick && onProjectClick(project)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onProjectClick && onProjectClick(project);
+                    }
+                  }}
+                >
+                  {project.projectName}
+                </span>
+              </td>
               <td className="creation-date-cell" style={{ width: columnWidths.creationDate, minWidth: minWidths.creationDate }}>
                 {project.creationDate ? (
                   <span title={new Date(project.creationDate).toLocaleString()}>

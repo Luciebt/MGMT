@@ -167,3 +167,19 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.project-name-link {
+  color: var(--primary-color);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+  outline: none;
+  user-select: none;
+  transition: color 0.15s;
+}
+.project-name-link:hover,
+.project-name-link:focus {
+  color: var(--primary-hover);
+  text-decoration: underline;
+  background: var(--bg-secondary);
+}

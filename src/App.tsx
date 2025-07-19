@@ -4,6 +4,7 @@ import { ProjectTable } from './components/ProjectTable';
 import { ProjectFilters } from './components/ProjectFilters';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useProjectManager } from './hooks/useProjectManager';
+import { ProjectProfile } from './components/ProjectProfile';
 
 declare global {
   interface Window {
@@ -98,6 +99,16 @@ function App() {
     onFilterChange,
   } = useProjectManager();
 
+  const [selectedProject, setSelectedProject] = useState<any | null>(null);
+
+  const handleProjectClick = (project: any) => {
+    setSelectedProject(project);
+  };
+
+  const handleBackToTable = () => {
+    setSelectedProject(null);
+  };
+
   return (
     <div className="app-container">
       <div className="app-header">
@@ -124,34 +135,41 @@ function App() {
         </div>
       )}
 
-      <ProjectFilters
-        filter={{ projectName: filters.searchTerm, tagNames: filters.selectedTags, statusNames: filters.selectedStatuses }}
-        onFilterChange={onFilterChange}
-        tags={allTags}
-        selectedTags={filters.selectedTags}
-        onTagSelectionChange={handleTagFilterChange}
-        onAddTag={handleAddTag}
-        onDeleteTag={handleDeleteTag}
-        selectedStatuses={filters.selectedStatuses}
-        onStatusSelectionChange={handleStatusFilterChange}
-      />
+      {selectedProject ? (
+        <ProjectProfile project={selectedProject} onBack={handleBackToTable} />
+      ) : (
+        <>
+          <ProjectFilters
+            filter={{ projectName: filters.searchTerm, tagNames: filters.selectedTags, statusNames: filters.selectedStatuses }}
+            onFilterChange={onFilterChange}
+            tags={allTags}
+            selectedTags={filters.selectedTags}
+            onTagSelectionChange={handleTagFilterChange}
+            onAddTag={handleAddTag}
+            onDeleteTag={handleDeleteTag}
+            selectedStatuses={filters.selectedStatuses}
+            onStatusSelectionChange={handleStatusFilterChange}
+          />
 
-      {projects.length > 0 && (
-        <ErrorBoundary>
-          <div className="mb-4">
-            <h3>Discovered Ableton Projects:</h3>
-            <ProjectTable
-              projects={sortedProjects}
-              allTags={allTags}
-              onSort={handleSort}
-              sortColumn={sort.column}
-              sortDirection={sort.direction}
-              onUpdateProjectTags={handleUpdateProjectTags}
-              onUpdateProjectNotes={handleUpdateProjectNotes}
-              onUpdateProjectStatus={handleUpdateProjectStatus}
-            />
-          </div>
-        </ErrorBoundary>
+          {projects.length > 0 && (
+            <ErrorBoundary>
+              <div className="mb-4">
+                <h3>Discovered Ableton Projects:</h3>
+                <ProjectTable
+                  projects={sortedProjects}
+                  allTags={allTags}
+                  onSort={handleSort}
+                  sortColumn={sort.column}
+                  sortDirection={sort.direction}
+                  onUpdateProjectTags={handleUpdateProjectTags}
+                  onUpdateProjectNotes={handleUpdateProjectNotes}
+                  onUpdateProjectStatus={handleUpdateProjectStatus}
+                  onProjectClick={handleProjectClick}
+                />
+              </div>
+            </ErrorBoundary>
+          )}
+        </>
       )}
     </div>
   );
