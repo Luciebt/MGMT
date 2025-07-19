@@ -13,7 +13,6 @@
   align-items: center;
   margin-bottom: var(--spacing-xl);
   padding-bottom: var(--spacing-lg);
-  border-bottom: 2px solid var(--border-color);
 }
 
 .app-title {
@@ -21,7 +20,6 @@
   font-weight: var(--font-weight-semibold);
   color: var(--primary-color);
   margin: 0;
-  text-shadow: 1px 1px 2px rgba(42, 50, 75, 0.1);
 }
 
 .header-actions {
