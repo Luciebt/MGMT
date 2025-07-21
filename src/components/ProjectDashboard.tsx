@@ -4,10 +4,6 @@ import "../styles/dashboard.css";
 
 const dummyTags = ["Electronic", "Chill", "2024"];
 const dummyStatus = "WIP";
-const dummyTrackCount = 14;
-const dummySampleCount = 128;
-const dummySetLength = "5:32";
-const dummyTempo = 124;
 const dummyMoodboard = [
   { type: "image", name: "Inspo 1", icon: "🖼️" },
   { type: "video", name: "Inspo 2", icon: "🎬" },
@@ -103,35 +99,51 @@ export const ProjectDashboard: React.FC<{
       </div>
       {/* Numerical Data Block (top right) */}
       <div style={{ gridArea: "stats" }}>
-        <div className="dashboard-card dashboard-card-modular">
-          <h3 className="dashboard-card-title">Project Stats</h3>
-          <div className="dashboard-numerical-cards">
-            <div className="dashboard-numcard">
-              <div className="dashboard-numcard-value">
-                {_project?.trackCount ?? dummyTrackCount}
-              </div>
-              <div className="dashboard-numcard-label">tracks</div>
-            </div>
-            <div className="dashboard-numcard">
-              <div className="dashboard-numcard-value">
-                {_project?.bpm ?? dummyTempo}
-              </div>
-              <div className="dashboard-numcard-label">BPM</div>
-            </div>
-            <div className="dashboard-numcard">
-              <div className="dashboard-numcard-value">
-                {_project?.sampleCount ?? dummySampleCount}
-              </div>
-              <div className="dashboard-numcard-label">samples</div>
-            </div>
-            <div className="dashboard-numcard">
-              <div className="dashboard-numcard-value">
-                {_project?.setLength ?? dummySetLength}
-              </div>
-              <div className="dashboard-numcard-label">length</div>
+        {(_project?.trackCount !== undefined &&
+          _project?.trackCount !== null) ||
+        (_project?.bpm !== undefined && _project?.bpm !== null) ||
+        (_project?.sampleCount !== undefined &&
+          _project?.sampleCount !== null) ||
+        (_project?.setLength !== undefined && _project?.setLength !== null) ? (
+          <div className="dashboard-card dashboard-card-modular">
+            <h3 className="dashboard-card-title">Project Stats</h3>
+            <div className="dashboard-numerical-cards">
+              {_project?.trackCount !== undefined &&
+                _project?.trackCount !== null && (
+                  <div className="dashboard-numcard">
+                    <div className="dashboard-numcard-value">
+                      {_project.trackCount}
+                    </div>
+                    <div className="dashboard-numcard-label">tracks</div>
+                  </div>
+                )}
+              {_project?.bpm !== undefined && _project?.bpm !== null && (
+                <div className="dashboard-numcard">
+                  <div className="dashboard-numcard-value">{_project.bpm}</div>
+                  <div className="dashboard-numcard-label">BPM</div>
+                </div>
+              )}
+              {_project?.sampleCount !== undefined &&
+                _project?.sampleCount !== null && (
+                  <div className="dashboard-numcard">
+                    <div className="dashboard-numcard-value">
+                      {_project.sampleCount}
+                    </div>
+                    <div className="dashboard-numcard-label">samples</div>
+                  </div>
+                )}
+              {_project?.setLength !== undefined &&
+                _project?.setLength !== null && (
+                  <div className="dashboard-numcard">
+                    <div className="dashboard-numcard-value">
+                      {_project.setLength}
+                    </div>
+                    <div className="dashboard-numcard-label">length</div>
+                  </div>
+                )}
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
       {/* Moodboard (full width below) */}
       <div style={{ gridArea: "moodboard" }}>

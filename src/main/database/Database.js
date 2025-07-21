@@ -22,7 +22,11 @@ class ProjectDatabase {
         fileSize INTEGER,
         version TEXT,
         notes TEXT,
-        status TEXT
+        status TEXT,
+        bpm REAL,
+        trackCount INTEGER,
+        sampleCount INTEGER,
+        setLength TEXT
       )
     `);
 
@@ -60,6 +64,10 @@ class ProjectDatabase {
         const migrations = [
             'ALTER TABLE projects ADD COLUMN notes TEXT',
             'ALTER TABLE projects ADD COLUMN status TEXT',
+            'ALTER TABLE projects ADD COLUMN bpm REAL',
+            'ALTER TABLE projects ADD COLUMN trackCount INTEGER',
+            'ALTER TABLE projects ADD COLUMN sampleCount INTEGER',
+            'ALTER TABLE projects ADD COLUMN setLength TEXT',
             'ALTER TABLE tags ADD COLUMN color TEXT DEFAULT "#007acc"',
             'ALTER TABLE tags ADD COLUMN createdAt TEXT DEFAULT CURRENT_TIMESTAMP'
         ];
@@ -77,8 +85,8 @@ class ProjectDatabase {
     insertProject(project) {
         const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO projects 
-      (projectName, projectPath, alsFilePath, creationDate, lastModified, fileSize, version, notes, status) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (projectName, projectPath, alsFilePath, creationDate, lastModified, fileSize, version, notes, status, bpm, trackCount, sampleCount, setLength) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
         return stmt.run(
             project.projectName,
@@ -89,7 +97,11 @@ class ProjectDatabase {
             project.fileSize,
             project.version,
             project.notes,
-            project.status
+            project.status,
+            project.bpm,
+            project.trackCount,
+            project.sampleCount,
+            project.setLength
         );
     }
 

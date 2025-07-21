@@ -128,6 +128,10 @@ class ProjectDiscoveryService {
                 fileSize: stats.size,
                 notes: null, // Initialize notes
                 status: null, // Initialize status
+                bpm: metadata.bpm,
+                trackCount: metadata.trackCount,
+                sampleCount: metadata.sampleCount,
+                setLength: metadata.setLength,
                 ...metadata
             };
 

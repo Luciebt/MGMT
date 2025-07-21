@@ -159,6 +159,21 @@
   }
 }
 
+body.dark-mode {
+  .dashboard-numcard {
+    background: var(--bg-secondary, #23242a);
+    color: var(--primary-color, #fff);
+    border: 1px solid var(--border-color, #333a45);
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.12);
+  }
+  .dashboard-numcard-value {
+    color: var(--primary-color, #fff);
+  }
+  .dashboard-numcard-label {
+    color: var(--text-muted, #b0b4c1);
+  }
+}
+
 .dashboard-card-modular .note-editor textarea {
   min-height: 80px;
   max-height: 220px;
