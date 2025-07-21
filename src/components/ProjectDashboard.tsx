@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { EditableNote } from "./EditableNote";
 import "../styles/dashboard.css";
 
@@ -20,10 +20,10 @@ export const ProjectDashboard: React.FC<{
   const [allTags, setAllTags] = useState<string[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
-    // Fetch all tags for autocomplete
+  useEffect(() => {
     window.electronAPI.getTags().then((tags: any[]) => {
       setAllTags(tags.map((t) => t.name));
     });
@@ -33,9 +33,7 @@ export const ProjectDashboard: React.FC<{
     if (!tagName.trim() || isAddingTag) return;
     setIsAddingTag(true);
     try {
-      // Add tag to global tags if new
       const tagId = await window.electronAPI.addTag(tagName.trim());
-      // Add tag to project
       await window.electronAPI.addProjectTag(_project.id, tagId);
       setTagInput("");
       setRefreshKey((k) => k + 1);
@@ -45,7 +43,6 @@ export const ProjectDashboard: React.FC<{
   };
 
   const handleRemoveTag = async (tagName: string) => {
-    // Find tag id
     const tags = await window.electronAPI.getTags();
     const tag = tags.find((t: any) => t.name === tagName);
     if (!tag) return;
@@ -53,25 +50,22 @@ export const ProjectDashboard: React.FC<{
     setRefreshKey((k) => k + 1);
   };
 
-  // Save notes to DB
   const handleSaveNote = async (newNote: string) => {
     if (!_project?.id) return;
     await window.electronAPI.updateProjectNotes(_project.id, newNote);
     if (onNotesSaved) onNotesSaved();
   };
 
-  // Current project tags (string[])
   const projectTags = Array.isArray(_project?.tags)
     ? _project.tags.map((t: any) => (typeof t === "string" ? t : t.name))
     : [];
   // Tag suggestions (exclude already added)
   const tagSuggestions = allTags.filter(
     (t) =>
-      t.toLowerCase().includes(tagInput.toLowerCase()) &&
+      (tagInput ? t.toLowerCase().includes(tagInput.toLowerCase()) : true) &&
       !projectTags.includes(t)
   );
 
-  // Handle keyboard navigation for suggestions
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown") {
       setHighlightedIndex((prev) =>
@@ -90,12 +84,12 @@ export const ProjectDashboard: React.FC<{
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     setHighlightedIndex(tagSuggestions.length > 0 ? 0 : -1);
   }, [tagInput, tagSuggestions.length]);
 
   return (
-    <div
+    <main
       style={{
         maxWidth: 900,
         margin: "0 auto",
@@ -111,45 +105,18 @@ export const ProjectDashboard: React.FC<{
         `,
       }}
     >
-      {/* Project Title, Status, Tags (above grid) */}
-      <div style={{ gridArea: "header", marginBottom: 0 }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            flexDirection: "column",
-            gap: "var(--spacing-2)",
-            flexWrap: "wrap",
-          }}
-        >
-          <h2 style={{ fontSize: "3rem", fontWeight: 700, margin: 0 }}>
-            {_project?.projectName || "Project Name"}
-          </h2>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "var(--spacing-2)",
-              flexWrap: "wrap",
-            }}
-          >
-            <span className="dashboard-status-badge" title="Status">
-              {_project?.status || dummyStatus}
-            </span>
-          </div>
+      <header style={{ gridArea: "header", marginBottom: 0 }}>
+        <h2 style={{ fontSize: "3rem", fontWeight: 700, margin: 0 }}>
+          {_project?.projectName || "Project Name"}
+        </h2>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-2)", flexWrap: "wrap", marginTop: 8 }}>
+          <span className="dashboard-status-badge" title="Status">
+            {_project?.status || dummyStatus}
+          </span>
         </div>
-      </div>
-      {/* Tag Management Section */}
-      <div style={{ gridArea: "tags", marginBottom: 0, position: 'relative' }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            flexWrap: "wrap",
-            position: 'relative',
-          }}
-        >
+      </header>
+      <section style={{ gridArea: "tags", marginBottom: 0, position: 'relative' }} aria-label="Project Tags">
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", position: 'relative' }}>
           {projectTags.map((tag: string) => (
             <span
               key={tag}
@@ -184,6 +151,7 @@ export const ProjectDashboard: React.FC<{
               onChange={(e) => {
                 setTagInput(e.target.value);
                 setHighlightedIndex(0);
+                setShowSuggestions(true);
               }}
               onKeyDown={handleTagInputKeyDown}
               placeholder="Add tag..."
@@ -199,11 +167,14 @@ export const ProjectDashboard: React.FC<{
               }}
               disabled={isAddingTag}
               autoComplete="off"
-              onBlur={() => setTimeout(() => setHighlightedIndex(-1), 100)}
-              onFocus={() => tagInput && setHighlightedIndex(0)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+              onFocus={() => {
+                setShowSuggestions(true);
+                setHighlightedIndex(tagSuggestions.length > 0 ? 0 : -1);
+              }}
             />
             {/* Suggestions Dropdown */}
-            {tagInput && tagSuggestions.length > 0 && (
+            {showSuggestions && tagSuggestions.length > 0 && (
               <div
                 style={{
                   position: 'absolute',
@@ -253,86 +224,59 @@ export const ProjectDashboard: React.FC<{
             </button>
           )}
         </div>
-      </div>
-      {/* Notes Section (top left) */}
-      <div style={{ gridArea: "notes" }}>
-        <div
-          className="dashboard-card dashboard-card-modular"
-          style={{ minHeight: 120 }}
-        >
+      </section>
+      <section style={{ gridArea: "notes" }} aria-label="Project Notes">
+        <div className="dashboard-card dashboard-card-modular" style={{ minHeight: 120 }}>
           <h3 className="dashboard-card-title">Notes</h3>
           <EditableNote
-            note={
-              _project?.notes ||
-              "This is a dummy note for the set. You can edit this in the real app."
-            }
+            note={_project?.notes || "This is a dummy note for the set. You can edit this in the real app."}
             onSave={handleSaveNote}
           />
         </div>
-      </div>
-      {/* Numerical Data Block (top right) */}
-      <div style={{ gridArea: "stats" }}>
-        {(_project?.trackCount !== undefined &&
-          _project?.trackCount !== null) ||
+      </section>
+      <section style={{ gridArea: "stats" }} aria-label="Project Stats">
+        {(_project?.trackCount !== undefined && _project?.trackCount !== null) ||
         (_project?.bpm !== undefined && _project?.bpm !== null) ||
-        (_project?.sampleCount !== undefined &&
-          _project?.sampleCount !== null) ||
+        (_project?.sampleCount !== undefined && _project?.sampleCount !== null) ||
         (_project?.setLength !== undefined && _project?.setLength !== null) ? (
           <div className="dashboard-card dashboard-card-modular">
             <h3 className="dashboard-card-title">Project Stats</h3>
             <div className="dashboard-numerical-cards">
-              {_project?.trackCount !== undefined &&
-                _project?.trackCount !== null && (
-                  <div className="dashboard-numcard">
-                    <div className="dashboard-numcard-value">
-                      {_project.trackCount}
-                    </div>
-                    <div className="dashboard-numcard-label">tracks</div>
-                  </div>
-                )}
+              {_project?.trackCount !== undefined && _project?.trackCount !== null && (
+                <div className="dashboard-numcard">
+                  <div className="dashboard-numcard-value">{_project.trackCount}</div>
+                  <div className="dashboard-numcard-label">tracks</div>
+                </div>
+              )}
               {_project?.bpm !== undefined && _project?.bpm !== null && (
                 <div className="dashboard-numcard">
                   <div className="dashboard-numcard-value">{_project.bpm}</div>
                   <div className="dashboard-numcard-label">BPM</div>
                 </div>
               )}
-              {_project?.sampleCount !== undefined &&
-                _project?.sampleCount !== null && (
-                  <div className="dashboard-numcard">
-                    <div className="dashboard-numcard-value">
-                      {_project.sampleCount}
-                    </div>
-                    <div className="dashboard-numcard-label">samples</div>
-                  </div>
-                )}
-              {_project?.setLength !== undefined &&
-                _project?.setLength !== null && (
-                  <div className="dashboard-numcard">
-                    <div className="dashboard-numcard-value">
-                      {_project.setLength}
-                    </div>
-                    <div className="dashboard-numcard-label">length</div>
-                  </div>
-                )}
+              {_project?.sampleCount !== undefined && _project?.sampleCount !== null && (
+                <div className="dashboard-numcard">
+                  <div className="dashboard-numcard-value">{_project.sampleCount}</div>
+                  <div className="dashboard-numcard-label">samples</div>
+                </div>
+              )}
+              {_project?.setLength !== undefined && _project?.setLength !== null && (
+                <div className="dashboard-numcard">
+                  <div className="dashboard-numcard-value">{_project.setLength}</div>
+                  <div className="dashboard-numcard-label">length</div>
+                </div>
+              )}
             </div>
           </div>
         ) : null}
-      </div>
-      {/* Moodboard (full width below) */}
-      <div style={{ gridArea: "moodboard" }}>
-        <section
-          className="dashboard-card"
-          style={{ marginTop: "var(--spacing-2)" }}
-        >
+      </section>
+      <section style={{ gridArea: "moodboard" }} aria-label="Project Moodboard">
+        <div className="dashboard-card" style={{ marginTop: "var(--spacing-2)" }}>
           <h3 className="dashboard-card-title">
-            Moodboard{" "}
+            Moodboard{' '}
             <span
               title="Drop images, videos, audio, or links here for inspiration"
-              style={{
-                fontSize: 16,
-                color: "var(--text-muted)",
-                marginLeft: 6,
-              }}
+              style={{ fontSize: 16, color: "var(--text-muted)", marginLeft: 6 }}
             >
               🛈
             </span>
@@ -360,8 +304,8 @@ export const ProjectDashboard: React.FC<{
               ))
             )}
           </div>
-        </section>
-      </div>
-    </div>
+        </div>
+      </section>
+    </main>
   );
 };
