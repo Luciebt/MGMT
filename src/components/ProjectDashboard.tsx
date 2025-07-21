@@ -15,9 +15,16 @@ const dummyMoodboard = [
   { type: "link", name: "Ableton Blog", icon: "🔗" },
 ];
 
-export const ProjectDashboard: React.FC<{ project: any }> = ({
-  project: _project,
-}) => {
+export const ProjectDashboard: React.FC<{
+  project: any;
+  onNotesSaved?: () => void;
+}> = ({ project: _project, onNotesSaved }) => {
+  // Save notes to DB
+  const handleSaveNote = async (newNote: string) => {
+    if (!_project?.id) return;
+    await window.electronAPI.updateProjectNotes(_project.id, newNote);
+    if (onNotesSaved) onNotesSaved();
+  };
   return (
     <div
       style={{
@@ -43,9 +50,15 @@ export const ProjectDashboard: React.FC<{ project: any }> = ({
             flexDirection: "column",
             gap: "var(--spacing-2)",
             flexWrap: "wrap",
+            margin: 8,
           }}
         >
-          <h2 style={{ fontSize: "2.2rem", fontWeight: 700, margin: 0 }}>
+          <h2
+            style={{
+              fontSize: "3rem",
+              fontWeight: 700,
+            }}
+          >
             {_project?.projectName || "Project Name"}
           </h2>
           <div
@@ -84,7 +97,7 @@ export const ProjectDashboard: React.FC<{ project: any }> = ({
               _project?.notes ||
               "This is a dummy note for the set. You can edit this in the real app."
             }
-            onSave={() => {}}
+            onSave={handleSaveNote}
           />
         </div>
       </div>

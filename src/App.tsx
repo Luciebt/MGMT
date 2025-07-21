@@ -106,6 +106,7 @@ function App() {
   };
 
   const handleBackToTable = () => {
+    handleRefresh();
     setSelectedProject(null);
   };
 
