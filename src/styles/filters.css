@@ -6,7 +6,6 @@
   border-radius: var(--border-radius);
   margin-bottom: var(--spacing-8);
   overflow: hidden;
-  box-shadow: var(--box-shadow);
 }
 
 /* Main Filter Bar */
@@ -38,14 +37,12 @@
   border-radius: var(--border-radius);
   font-size: var(--font-size-base);
   background-color: var(--bg-primary);
-  transition: border-color var(--transition-base),
-    box-shadow var(--transition-base);
+  transition: border-color var(--transition-base);
 }
 
 .filter-search-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(42, 50, 75, 0.1);
 }
 
 .filter-actions-group {
@@ -256,8 +253,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--spacing-1);
-  padding: var(--spacing-1) var(--spacing-2);
+  padding: 4px 14px;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -269,13 +265,11 @@
 
 .tag-filter-item:hover {
   border-color: var(--primary-color);
-  box-shadow: 0 2px 4px rgba(42, 50, 75, 0.1);
   transform: translateY(-1px);
 }
 
 .tag-filter-item:focus-within {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(42, 50, 75, 0.1);
 }
 
 .tag-filter-item:disabled {
@@ -475,13 +469,11 @@
 
 .status-filter-item:hover {
   border-color: var(--primary-color);
-  box-shadow: 0 2px 4px rgba(42, 50, 75, 0.1);
   transform: translateY(-1px);
 }
 
 .status-filter-item:focus-within {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(42, 50, 75, 0.1);
 }
 
 .status-filter-item.selected {

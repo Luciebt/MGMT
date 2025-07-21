@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { EditableNote } from "./EditableNote";
 import "../styles/dashboard.css";
+import { InteractiveTags } from "./InteractiveTags";
 
 const dummyStatus = "WIP";
 const dummyMoodboard = [
@@ -14,14 +15,14 @@ export const ProjectDashboard: React.FC<{
   project: any;
   onNotesSaved?: () => void;
 }> = ({ project: _project, onNotesSaved }) => {
-  // Tag management state
-  const [tagInput, setTagInput] = useState("");
-  const [isAddingTag, setIsAddingTag] = useState(false);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  // Add local state for projectTags to allow immediate UI update
+  const [projectTags, setProjectTags] = useState<string[]>(
+    Array.isArray(_project?.tags)
+      ? _project.tags.map((t: any) => (typeof t === "string" ? t : t.name))
+      : []
+  );
 
   useEffect(() => {
     window.electronAPI.getTags().then((tags: any[]) => {
@@ -29,24 +30,45 @@ export const ProjectDashboard: React.FC<{
     });
   }, [refreshKey]);
 
-  const handleAddTag = async (tagName: string) => {
-    if (!tagName.trim() || isAddingTag) return;
-    setIsAddingTag(true);
-    try {
-      const tagId = await window.electronAPI.addTag(tagName.trim());
-      await window.electronAPI.addProjectTag(_project.id, tagId);
-      setTagInput("");
-      setRefreshKey((k) => k + 1);
-    } finally {
-      setIsAddingTag(false);
-    }
-  };
+  // Sync projectTags state with prop changes (e.g. after DB refresh)
+  useEffect(() => {
+    setProjectTags(
+      Array.isArray(_project?.tags)
+        ? _project.tags.map((t: any) => (typeof t === "string" ? t : t.name))
+        : []
+    );
+  }, [_project]);
 
-  const handleRemoveTag = async (tagName: string) => {
-    const tags = await window.electronAPI.getTags();
-    const tag = tags.find((t: any) => t.name === tagName);
-    if (!tag) return;
-    await window.electronAPI.removeProjectTag(_project.id, tag.id);
+  const handleTagsChange = async (newTags: string[]) => {
+    // Immediate UI update
+    setProjectTags(newTags);
+    // Add any new tags to the DB, then update project tags
+    const tagsFromDb = await window.electronAPI.getTags();
+    const dbTagNames = tagsFromDb.map((t: any) => t.name);
+    // Add missing tags
+    for (const tag of newTags) {
+      if (!dbTagNames.includes(tag)) {
+        await window.electronAPI.addTag(tag);
+      }
+    }
+    // Remove all tags from project, then add the new set
+    const prevProjectTags = Array.isArray(_project?.tags)
+      ? _project.tags.map((t: any) => (typeof t === "string" ? t : t.name))
+      : [];
+    // Remove tags not in newTags
+    for (const tag of prevProjectTags) {
+      if (!newTags.includes(tag)) {
+        const tagObj = tagsFromDb.find((t: any) => t.name === tag);
+        if (tagObj) await window.electronAPI.removeProjectTag(_project.id, tagObj.id);
+      }
+    }
+    // Add tags in newTags not in prevProjectTags
+    for (const tag of newTags) {
+      if (!prevProjectTags.includes(tag)) {
+        const tagObj = (await window.electronAPI.getTags()).find((t: any) => t.name === tag);
+        if (tagObj) await window.electronAPI.addProjectTag(_project.id, tagObj.id);
+      }
+    }
     setRefreshKey((k) => k + 1);
   };
 
@@ -55,38 +77,6 @@ export const ProjectDashboard: React.FC<{
     await window.electronAPI.updateProjectNotes(_project.id, newNote);
     if (onNotesSaved) onNotesSaved();
   };
-
-  const projectTags = Array.isArray(_project?.tags)
-    ? _project.tags.map((t: any) => (typeof t === "string" ? t : t.name))
-    : [];
-  // Tag suggestions (exclude already added)
-  const tagSuggestions = allTags.filter(
-    (t) =>
-      (tagInput ? t.toLowerCase().includes(tagInput.toLowerCase()) : true) &&
-      !projectTags.includes(t)
-  );
-
-  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown") {
-      setHighlightedIndex((prev) =>
-        Math.min(prev + 1, tagSuggestions.length - 1)
-      );
-    } else if (e.key === "ArrowUp") {
-      setHighlightedIndex((prev) => Math.max(prev - 1, 0));
-    } else if (e.key === "Enter") {
-      if (highlightedIndex >= 0 && tagSuggestions[highlightedIndex]) {
-        handleAddTag(tagSuggestions[highlightedIndex]);
-      } else if (tagInput.trim()) {
-        handleAddTag(tagInput.trim());
-      }
-    } else if (e.key === "Escape") {
-      setHighlightedIndex(-1);
-    }
-  };
-
-  useEffect(() => {
-    setHighlightedIndex(tagSuggestions.length > 0 ? 0 : -1);
-  }, [tagInput, tagSuggestions.length]);
 
   return (
     <main
@@ -106,123 +96,23 @@ export const ProjectDashboard: React.FC<{
       }}
     >
       <header style={{ gridArea: "header", marginBottom: 0 }}>
-        <h2 style={{ fontSize: "3rem", fontWeight: 700, margin: 0 }}>
-          {_project?.projectName || "Project Name"}
-        </h2>
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-2)", flexWrap: "wrap", marginTop: 8 }}>
-          <span className="dashboard-status-badge" title="Status">
-            {_project?.status || dummyStatus}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap', padding: 'var(--spacing-2)', margin: 'var(--spacing-2)' }}>
+          <h2 style={{ fontSize: "3rem", fontWeight: 700, margin: 0, minWidth: 0, padding: 'var(--spacing-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'flex-end', gap: 16 }}>
+            <span style={{ lineHeight: 1 }}>{_project?.projectName || "Project Name"}</span>
+            <span className="dashboard-status-badge" title="Status" style={{ marginLeft: 12, flexShrink: 0, alignSelf: 'flex-end', verticalAlign: 'bottom', marginBottom: '5px' }}>
+              {_project?.status || dummyStatus}
+            </span>
+          </h2>
         </div>
       </header>
       <section style={{ gridArea: "tags", marginBottom: 0, position: 'relative' }} aria-label="Project Tags">
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", position: 'relative' }}>
-          {projectTags.map((tag: string) => (
-            <span
-              key={tag}
-              className="dashboard-chip"
-              style={{ display: "flex", alignItems: "center" }}
-            >
-              {tag}
-              <button
-                style={{
-                  background: "none",
-                  border: "none",
-                  marginLeft: 4,
-                  cursor: "pointer",
-                  color: "var(--primary-color)",
-                  fontSize: 16,
-                  lineHeight: 1,
-                  padding: 0,
-                }}
-                title={`Remove tag ${tag}`}
-                onClick={() => handleRemoveTag(tag)}
-                aria-label={`Remove tag ${tag}`}
-              >
-                ×
-              </button>
-            </span>
-          ))}
-          <div style={{ position: 'relative', display: 'inline-block' }}>
-            <input
-              ref={inputRef}
-              type="text"
-              value={tagInput}
-              onChange={(e) => {
-                setTagInput(e.target.value);
-                setHighlightedIndex(0);
-                setShowSuggestions(true);
-              }}
-              onKeyDown={handleTagInputKeyDown}
-              placeholder="Add tag..."
-              style={{
-                minWidth: 120,
-                fontSize: 15,
-                padding: '4px 10px',
-                borderRadius: 6,
-                border: '1px solid var(--border-color)',
-                outline: 'none',
-                marginRight: 4,
-                background: 'var(--bg-primary)',
-              }}
-              disabled={isAddingTag}
-              autoComplete="off"
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-              onFocus={() => {
-                setShowSuggestions(true);
-                setHighlightedIndex(tagSuggestions.length > 0 ? 0 : -1);
-              }}
-            />
-            {/* Suggestions Dropdown */}
-            {showSuggestions && tagSuggestions.length > 0 && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  zIndex: 10,
-                  background: 'var(--bg-primary)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 6,
-                  boxShadow: '0 2px 8px 0 rgba(0,0,0,0.08)',
-                  minWidth: 120,
-                  marginTop: 2,
-                  maxHeight: 180,
-                  overflowY: 'auto',
-                }}
-              >
-                {tagSuggestions.map((t, idx) => (
-                  <div
-                    key={t}
-                    style={{
-                      padding: '6px 12px',
-                      cursor: 'pointer',
-                      background:
-                        idx === highlightedIndex
-                          ? 'var(--bg-secondary, #f0f0f7)'
-                          : 'transparent',
-                      color: 'var(--primary-color)',
-                      fontWeight: idx === highlightedIndex ? 600 : 400,
-                    }}
-                    onMouseDown={() => handleAddTag(t)}
-                    onMouseEnter={() => setHighlightedIndex(idx)}
-                  >
-                    {t}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {tagInput.trim() && !projectTags.includes(tagInput.trim()) && (
-            <button
-              className="btn btn-success btn-sm"
-              style={{ marginLeft: 2 }}
-              onClick={() => handleAddTag(tagInput.trim())}
-              disabled={isAddingTag}
-            >
-              +
-            </button>
-          )}
+          <InteractiveTags
+            tags={projectTags}
+            allTags={allTags}
+            onTagsChange={handleTagsChange}
+            maxTags={10}
+          />
         </div>
       </section>
       <section style={{ gridArea: "notes" }} aria-label="Project Notes">

@@ -3,10 +3,10 @@
 .tags-container {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-1);
+  gap: var(--spacing-2);
   align-items: center;
   min-height: 32px;
-  padding: var(--spacing-1);
+  padding: var(--spacing-2);
   border-radius: var(--border-radius);
   transition: all var(--transition-base);
   cursor: pointer;
@@ -43,20 +43,33 @@
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  will-change: transform, background-color;
+  will-change: background-color;
   max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* Ensure tag-pill size and padding do not change on hover */
 .tag-pill:hover {
   background-color: var(--accent-hover);
-  transform: translateY(-1px);
+  /* Remove transform: translateY(-1px); */
 }
 
 .tag-pill.editing {
   background-color: var(--primary-color);
   color: white;
+}
+
+.tag-pill.tag-pill-has-bin {
+  padding: 2px var(--spacing-1);
+}
+
+.tag-pill-has-bin .tag-delete-btn {
+  display: none;
+}
+
+.tag-pill-has-bin:hover .tag-delete-btn {
+  display: inline-flex;
 }
 
 .tag-pill-remove {

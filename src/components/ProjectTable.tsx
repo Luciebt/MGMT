@@ -179,6 +179,7 @@ export const ProjectTable: React.FC<ProjectTableProps & { onProjectClick?: (proj
                   allTags={allTags.map(tag => tag.name)}
                   onTagsChange={(newTags) => handleTagsChange(project.id, newTags)}
                   maxTags={10}
+                  variant="pill"
                 />
               </td>
               <td className="notes-cell" style={{ width: columnWidths.notes, minWidth: minWidths.notes }}>
